@@ -1,0 +1,9 @@
+# Somente no servidor/Vercel. Nunca use prefixo VITE_ nestes valores.
+# Supabase > Connect > Transaction pooler (porta 6543).
+SUPABASE_DB_URL=
+# Senha do professor: pelo menos 12 caracteres e no máximo 256 bytes UTF-8.
+DASHBOARD_PASSWORD=
+# Segredo aleatório para o agendamento interno da Vercel.
+CRON_SECRET=
+# Opcional: certificado raiz fornecido pelo Supabase, se necessário.
+SUPABASE_DB_CA=

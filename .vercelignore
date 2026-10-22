@@ -1,0 +1,11 @@
+.git
+.wrangler
+.env
+.env.*
+.dev.vars*
+data
+work
+node_modules
+docs/previews
+*.log
+test-results

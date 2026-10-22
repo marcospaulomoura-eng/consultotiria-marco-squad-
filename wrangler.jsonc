@@ -1,0 +1,33 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "marcos-squad-painel",
+  "main": "cloudflare/worker.mjs",
+  "compatibility_date": "2025-09-01",
+  "workers_dev": true,
+  "send_metrics": false,
+  "triggers": { "crons": ["0 12 * * *"] },
+  "vars": {
+    "APP_ID": "marcos-squad-dashboard-v1",
+    "WHATSAPP_GRAPH_API_VERSION": "v23.0",
+    "WHATSAPP_TEMPLATE_LANGUAGE": "pt_BR",
+    "WHATSAPP_RENEWAL_TEMPLATE": "marcos_squad_renovacao",
+    "WHATSAPP_SALES_TEMPLATE": "marcos_squad_retorno"
+  },
+  "assets": {
+    "directory": "./dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"]
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "marcos-squad-painel-db",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "cloudflare/migrations"
+    }
+  ],
+  "observability": {
+    "enabled": false
+  }
+}
