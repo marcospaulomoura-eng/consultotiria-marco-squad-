@@ -54,8 +54,12 @@ A proteção adicional da própria Vercel precisa ser conferida antes de compart
 
 ```bash
 npm test
+npm run lint
 npm run build
+npm run preflight
 ```
+
+O preflight verifica arquivos e nomes das configurações no processo, sem ler `.env` nem exibir seus valores. Falha enquanto faltarem `SUPABASE_DB_URL`, `DASHBOARD_PASSWORD` ou `CRON_SECRET`. Com as variáveis fornecidas de forma segura ao processo, `npm run preflight -- --database` também confere a identidade do aplicativo, colunas e checksums das migrações em uma transação somente de leitura. Não migra, importa, inicializa dados nem publica. O vínculo local não comprova acesso à conta Vercel.
 
 Os testes usam apenas dados fictícios. PGlite executa o PostgreSQL real em memória, mas não comprova rede, TLS ou o comportamento de duas conexões independentes do pooler remoto. Após publicar, execute:
 

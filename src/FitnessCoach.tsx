@@ -42,11 +42,6 @@ export default function FitnessCoach({ section }: { section: 'training' | 'nutri
     }
   }, []);
   useEffect(() => { let live = true; const timer = setTimeout(() => reload().catch(e => { if (live) setError(e.message); }).finally(() => { if (live) setLoading(false); }), 0); return () => { live = false; clearTimeout(timer); }; }, [reload]);
-  useEffect(() => {
-    let live = true;
-    if (selection.id) loadPrescription(selection).catch(e => { if (live) setError(e.message); });
-    return () => { live = false; };
-  }, [selection, loadPrescription]);
   async function refreshClient(target = selection) { await reload(); if (target.id && selectionRef.current === target) await loadPrescription(target); }
   async function action(work: () => Promise<void>) {
     const target = selection;
@@ -57,6 +52,7 @@ export default function FitnessCoach({ section }: { section: 'training' | 'nutri
     // A new selection identity also invalidates an earlier A → B → A request.
     const next = { id }; selectionRef.current = next; setSelection(next);
     setPrescription(null); setAccess(null); setWorkout(null); setDiet(null); setNotice(''); setError(''); setCopied(false);
+    if (id) void loadPrescription(next).catch(e => { if (selectionRef.current === next) setError(e.message); });
   }
   const client = clients.find(c => c.id === clientId);
   const filteredExercises = catalog?.exercises.filter(e => (!group || e.category === group) && normalized(`${e.name} ${e.equipment}`).includes(normalized(query))) || [];

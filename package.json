@@ -15,6 +15,7 @@
     "start:supabase": "node --env-file-if-exists=.env server/supabase-local.mjs",
     "supabase:migrate": "node --env-file-if-exists=.env scripts/migrate-supabase.mjs",
     "supabase:import": "node --env-file-if-exists=.env scripts/import-supabase.mjs",
+    "preflight": "node scripts/preflight.mjs",
     "verify:deployment": "node scripts/verify-deployment.mjs",
     "preview": "vite preview --host 127.0.0.1 --port 4173 --strictPort",
     "cloud:dev": "node scripts/wrangler.mjs dev --ip 127.0.0.1 --port 8787",

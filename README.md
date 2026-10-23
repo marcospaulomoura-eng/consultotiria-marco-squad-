@@ -1,6 +1,6 @@
 # Marcos Squad — consultoria, treinos e nutrição
 
-Aplicativo em português para uma consultoria de treino e dieta, com painel do professor e área individual do aluno. A publicação atual foi adaptada para **React/TypeScript/Vite + API Node.js na Vercel + PostgreSQL no Supabase**. Os modos SQLite e Cloudflare/D1 anteriores foram mantidos para compatibilidade e testes.
+Aplicativo em português para uma consultoria de treino e dieta, com painel do professor e área individual do aluno. A arquitetura atual usa **React/TypeScript/Vite + API Node.js na Vercel + PostgreSQL no Supabase**. A implantação na Vercel ainda depende das configurações de servidor e da revisão antes da publicação. Os modos SQLite e Cloudflare/D1 anteriores foram mantidos para compatibilidade e testes.
 
 Inclui biblioteca de 45 exercícios com vídeo, opção de vídeos do YouTube, 591 alimentos TACO, prescrições em gramas, registro de treinos, top 5 mensal e comunidade com fotos, curtidas e comentários. Veja o [guia do aplicativo e dos acessos dos alunos](docs/APP_ALUNOS.md).
 
@@ -93,6 +93,7 @@ O primeiro comando valida o pacote sem publicar. O segundo exige `CLOUDFLARE_API
 npm test
 npm run lint
 npm run build
+npm run preflight
 ```
 
-Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel e migração/importação. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.
+Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel e migração/importação. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O preflight falha enquanto as configurações necessárias estiverem ausentes; não publica nem revela credenciais. Veja os [resultados e telas da revisão](docs/TESTES_SUPABASE_VERCEL.md). O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.

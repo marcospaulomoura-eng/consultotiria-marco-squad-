@@ -1,4 +1,4 @@
-# Estado do aplicativo — 22/10/2026
+# Estado do aplicativo — 23/10/2026
 
 A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O usuário autorizou concluir e publicar; em seguida pediu testar e mostrar os resultados antes de publicar. Nenhum deploy na Vercel foi executado nesta etapa de revisão.
 
@@ -9,12 +9,14 @@ A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O
 - Função Node 24 para a API, fallback React em /aluno, arquivos estáticos e cron protegido.
 - Migração versionada e importador SQLite/D1 com snapshot consistente, rollback e proteção contra substituição de um destino ocupado.
 - Fluxos de professor, aluno, financeiro, treinos, alimentação e comunidade preservados.
+- Carregamento da prescrição iniciado pela seleção do professor, preservando a proteção contra respostas antigas ao alternar rapidamente entre alunos.
+- Preflight de configuração e arquivos, com modo opcional de banco somente de leitura e sem exibir credenciais.
 
 ## Verificações
 
-104 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos e runtime Vercel. O build React/TypeScript passou.
+109 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos, runtime Vercel e preflight. O lint e o build React/TypeScript passaram.
 
-17 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas. Todos os dados eram fictícios.
+18 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas nas 38 respostas da API observadas. Um teste adicional confirmou que uma resposta atrasada na troca A → B → A não substitui a seleção atual. Todos os dados eram fictícios.
 
 A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
 
@@ -22,9 +24,13 @@ O teste de gravações e rollback no Supabase remoto foi recusado pela ferrament
 
 O aviso informativo rls_enabled_no_policy é esperado nesta arquitetura de schema privado e API no servidor. Nenhum acesso público foi concedido para suprimir esse aviso.
 
+O acesso ao projeto Vercel foi confirmado pelo ID no escopo padrão da conexão, o mesmo usado na criação. A consulta com seleção explícita do workspace retornou 403, mas não exige reconexão para este projeto. A lista de variáveis remotas está vazia; o vínculo local não as substitui.
+
+Uma leitura somente por contagens do SQLite local encontrou 9 clientes de demonstração e nenhum cliente regular. A origem Cloudflare/D1 não foi conferida nesta rodada; não confundir essas contagens com um inventário do banco remoto antigo.
+
 ## Pendências de publicação
 
-1. Configurar uma conexão operacional do Supabase e as credenciais somente do servidor na Vercel. Não reutilizar placeholders do ambiente Cloudflare como valores reais.
+1. Confirmar o Host do Transaction pooler em Connect no Supabase e configurar uma conexão operacional e as credenciais somente do servidor na Vercel. O conector disponível não expõe a configuração do pooler; o host não deve ser inferido pela região. Não reutilizar placeholders do ambiente Cloudflare como valores reais.
 2. Transferir os dados antigos, se houver, com origem congelada durante o corte e destino vazio. Nenhum dado real foi transferido nesta revisão.
 3. Validar a escrita no Supabase e realizar o deploy Vercel após a apresentação dos testes solicitada pelo usuário.
 4. Conferir a proteção adicional da Vercel para permitir acesso dos alunos e executar npm run verify:deployment com a URL confirmada.
