@@ -38,9 +38,9 @@ export async function fitnessApi<T = unknown>(path: string, method = 'GET', body
 export async function photoData(file: File): Promise<string> {
   if (!['image/jpeg', 'image/png', 'image/webp'].includes(file.type)) throw new Error('Escolha uma foto JPG, PNG ou WebP.');
   if (file.size > 12 * 1024 * 1024) throw new Error('Escolha uma foto com até 12 MB.');
-  const bitmap = await createImageBitmap(file);
+  const bitmap = await createImageBitmap(file).catch(() => { throw new Error('Não foi possível abrir esta foto. Escolha outra imagem JPG, PNG ou WebP.'); });
   const scale = Math.min(1, 1000 / Math.max(bitmap.width, bitmap.height));
-  const canvas = document.createElement('canvas'); canvas.width = Math.round(bitmap.width * scale); canvas.height = Math.round(bitmap.height * scale);
+  const canvas = document.createElement('canvas'); canvas.width = Math.max(1, Math.round(bitmap.width * scale)); canvas.height = Math.max(1, Math.round(bitmap.height * scale));
   const context = canvas.getContext('2d'); if (!context) { bitmap.close(); throw new Error('Não foi possível preparar a foto.'); }
   context.fillStyle = '#fff'; context.fillRect(0, 0, canvas.width, canvas.height);
   context.drawImage(bitmap, 0, 0, canvas.width, canvas.height); bitmap.close();

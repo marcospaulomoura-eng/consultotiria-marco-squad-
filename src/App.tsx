@@ -357,6 +357,7 @@ export default function App() {
   const triggerRef = useRef<HTMLElement | null>(null);
   const sessionReadyRef = useRef(false);
   const sessionVersionRef = useRef(0);
+  const dashboardRequestRef = useRef(0);
   const clearSensitiveState = useCallback(() => {
     sessionReadyRef.current = false;
     sessionVersionRef.current += 1;
@@ -428,23 +429,24 @@ export default function App() {
   const load = useCallback(async () => {
     if (!sessionReadyRef.current) return;
     const version = sessionVersionRef.current;
+    const request = ++dashboardRequestRef.current;
+    const isCurrentRequest = () => sessionReadyRef.current &&
+      version === sessionVersionRef.current && request === dashboardRequestRef.current;
     try {
       const result = await api<Dashboard>("/dashboard");
-      if (!sessionReadyRef.current || version !== sessionVersionRef.current)
-        return;
+      if (!isCurrentRequest()) return;
       setData(result);
       setError("");
       setSettingsDraft((previous) => previous ?? result.settings);
     } catch (caught) {
-      if (!sessionReadyRef.current || version !== sessionVersionRef.current)
-        return;
+      if (!isCurrentRequest()) return;
       setError(
         caught instanceof Error
           ? caught.message
           : "Não foi possível carregar o painel.",
       );
     } finally {
-      if (sessionReadyRef.current && version === sessionVersionRef.current) {
+      if (isCurrentRequest()) {
         setLoading(false);
       }
     }

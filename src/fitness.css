@@ -424,6 +424,23 @@ body { background:var(--s-bg); color:var(--s-ink); }
 .finance-track-button { color:var(--s-yellow); }
 .app-shell .finance-month-values span:last-child { color:#e1e1db; }
 .app-shell .finance-bar-received,.app-shell .legend-received { background:#e1e1db; }
+.app-shell .sales-summary-grid>article,.app-shell .loading-panel,.app-shell .error-panel { background:#191a1d; border-color:#313237; }
+.app-shell .sales-summary-grid>article>strong,.app-shell .loading-panel h3,.app-shell .error-panel h3 { color:#eeeee9; }
+.app-shell .sales-summary-grid>article>span,.app-shell .loading-panel p,.app-shell .error-panel p { color:#a3a4ac; }
+.app-shell .sales-table,.app-shell .sales-table tbody tr { background:#191a1d; }
+.app-shell .sales-table thead,.app-shell .sales-table th { background:#202125; color:#a5a6ae; border-color:#34353a; }
+.app-shell .sales-table td { border-color:#303136; color:#babac1; }
+.app-shell .sales-table td strong { color:#e9e9e5; }
+.app-shell .sales-table .finance-client-cell>div>span { color:#a3a4ac; }
+.app-shell .sales-table .avatar { color:#463b22; }
+.app-shell .sales-table tbody tr:hover { background:#21221f; }
+.app-shell .followup-date { color:#e5cb77; }
+.app-shell .followup-late { color:#ffb6ae; }
+.app-shell .lead-stage-new { background:#303136; color:#e3e3dc; }
+.app-shell .lead-stage-contacted { background:#202f45; color:#b9d5ff; }
+.app-shell .lead-stage-negotiation { background:#3b321a; color:#f6db76; }
+.app-shell .lead-stage-won { background:#203823; color:#c4dea7; }
+.app-shell .lead-stage-lost { background:#402829; color:#ffb6ae; }
 .renewal-row { border-bottom-color:#34353a; }
 .avatar { border-color:#303136; }
 @media(min-width:1500px) { .fit-exercise-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }

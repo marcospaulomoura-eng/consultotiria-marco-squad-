@@ -43,6 +43,12 @@ export default function FitnessCoach({ section }: { section: 'training' | 'nutri
   }, []);
   useEffect(() => { let live = true; const timer = setTimeout(() => reload().catch(e => { if (live) setError(e.message); }).finally(() => { if (live) setLoading(false); }), 0); return () => { live = false; clearTimeout(timer); }; }, [reload]);
   async function refreshClient(target = selection) { await reload(); if (target.id && selectionRef.current === target) await loadPrescription(target); }
+  async function refreshAfterSave(message: string, refresh: () => Promise<void> = reload, target = selection) {
+    if (selectionRef.current === target) { setError(''); setNotice(message); }
+    try { await refresh(); } catch {
+      if (selectionRef.current === target) setError('A alteração foi salva, mas não foi possível atualizar a tela. Use Atualizar para carregar os dados salvos.');
+    }
+  }
   async function action(work: () => Promise<void>) {
     const target = selection;
     if (busy) return; setBusy(true); setError(''); setNotice('');
@@ -78,10 +84,10 @@ export default function FitnessCoach({ section }: { section: 'training' | 'nutri
       </>}
     </>}
     {video && <ExerciseVideo exercise={video} close={() => setVideo(null)} />}
-    {youtube && <YouTubeEditor exercise={youtube} close={() => setYoutube(null)} save={async input => { await fitnessApi(`/coach/catalog/${youtube.id}/video`, 'PUT', input); setYoutube(null); await reload(); setNotice('Vídeo atualizado em todos os treinos que usam este exercício.'); }} />}
-    {workout && catalog && <WorkoutEditor value={workout} setValue={setWorkout} exercises={catalog.exercises} close={() => setWorkout(null)} save={async () => { const target = selection; await fitnessApi(`/coach/clients/${target.id}/workouts${workout.id ? `/${workout.id}` : ''}`, workout.id ? 'PUT' : 'POST', workout); if (selectionRef.current === target) setWorkout(null); await refreshClient(target); if (selectionRef.current === target) setNotice('Treino salvo e disponível para o aluno.'); }} />}
-    {diet && catalog && <DietEditor value={diet} setValue={setDiet} foods={catalog.foods} close={() => setDiet(null)} save={async () => { const target = selection; await fitnessApi(`/coach/clients/${target.id}/diet`, 'PUT', diet); if (selectionRef.current === target) setDiet(null); await refreshClient(target); if (selectionRef.current === target) setNotice('Plano alimentar salvo e disponível para o aluno.'); }} />}
-    {custom && <CatalogEditor kind={isTraining ? 'exercise' : 'food'} close={() => setCustom(false)} save={async input => { await fitnessApi('/coach/catalog', 'POST', input); setCustom(false); await reload(); setNotice(isTraining ? 'Exercício adicionado à biblioteca.' : 'Alimento adicionado ao catálogo.'); }} />}
+    {youtube && <YouTubeEditor exercise={youtube} close={() => setYoutube(null)} save={async input => { await fitnessApi(`/coach/catalog/${youtube.id}/video`, 'PUT', input); setYoutube(null); await refreshAfterSave('Vídeo atualizado em todos os treinos que usam este exercício.'); }} />}
+    {workout && catalog && <WorkoutEditor value={workout} setValue={setWorkout} exercises={catalog.exercises} close={() => setWorkout(null)} save={async () => { const target = selection; await fitnessApi(`/coach/clients/${target.id}/workouts${workout.id ? `/${workout.id}` : ''}`, workout.id ? 'PUT' : 'POST', workout); if (selectionRef.current === target) setWorkout(null); await refreshAfterSave('Treino salvo e disponível para o aluno.', () => refreshClient(target), target); }} />}
+    {diet && catalog && <DietEditor value={diet} setValue={setDiet} foods={catalog.foods} close={() => setDiet(null)} save={async () => { const target = selection; await fitnessApi(`/coach/clients/${target.id}/diet`, 'PUT', diet); if (selectionRef.current === target) setDiet(null); await refreshAfterSave('Plano alimentar salvo e disponível para o aluno.', () => refreshClient(target), target); }} />}
+    {custom && <CatalogEditor kind={isTraining ? 'exercise' : 'food'} close={() => setCustom(false)} save={async input => { await fitnessApi('/coach/catalog', 'POST', input); setCustom(false); await refreshAfterSave(isTraining ? 'Exercício adicionado à biblioteca.' : 'Alimento adicionado ao catálogo.'); }} />}
   </div>;
 }
 

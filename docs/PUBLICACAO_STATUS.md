@@ -2,6 +2,8 @@
 
 A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O usuário autorizou concluir e publicar; em seguida pediu testar e mostrar os resultados antes de publicar. Nenhum deploy na Vercel foi executado nesta etapa de revisão.
 
+O usuário pediu adiar a configuração da conexão Supabase e continuar o desenvolvimento. Essa configuração permanece pendente, sem bloquear a revisão e os testes locais e sem novas solicitações do Host nesta etapa.
+
 ## Implementação
 
 - Adaptador PostgreSQL com pool serverless, TLS verificado, batches atômicos e repetição de conflitos de serialização.
@@ -11,12 +13,19 @@ A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O
 - Fluxos de professor, aluno, financeiro, treinos, alimentação e comunidade preservados.
 - Carregamento da prescrição iniciado pela seleção do professor, preservando a proteção contra respostas antigas ao alternar rapidamente entre alunos.
 - Preflight de configuração e arquivos, com modo opcional de banco somente de leitura e sem exibir credenciais.
+- Feed e painel ignoram respostas antigas; publicações e comentários preservam novos rascunhos digitados enquanto um envio anterior termina.
+- Tratamento de fotos estreitas e erros de leitura; atualização do catálogo junto à prescrição do aluno e reconciliação do treino em andamento.
+- Aviso visível quando uma prescrição foi salva, mas a atualização seguinte falhou, permitindo recarregar sem reenviar a criação.
+- Contraste do funil de vendas, indicadores e estados de carregamento alinhado ao tema escuro.
+- Saída e expiração do aluno invalidam cargas pendentes, impedindo que uma resposta antiga restaure a interface da sessão anterior.
 
 ## Verificações
 
 109 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos, runtime Vercel e preflight. O lint e o build React/TypeScript passaram.
 
 18 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas nas 38 respostas da API observadas. Um teste adicional confirmou que uma resposta atrasada na troca A → B → A não substitui a seleção atual. Todos os dados eram fictícios.
+
+A revisão adicional passou por 8 fluxos de cadastro, financeiro e vendas, incluindo pagamento parcial, quitação e persistência após recarga. Regressões específicas de concorrência, catálogo, treino ativo, fotos e recuperação após erro foram reproduzidas antes e verificadas após as correções. Consulte [revisão dos fluxos e da interface](REVISAO_INTERFACE.md).
 
 A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
 
