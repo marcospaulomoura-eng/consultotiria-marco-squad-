@@ -6,7 +6,7 @@
   "functions": {
     "api/index.mjs": {
       "maxDuration": 60,
-      "includeFiles": "server/fitness-catalog.json"
+      "includeFiles": "server/*.json"
     }
   },
   "routes": [

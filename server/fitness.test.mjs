@@ -1,17 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { randomBytes } from 'node:crypto';
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync, readdirSync } from 'node:fs';
 import worker from '../cloudflare/worker.mjs';
 import { fitnessDatabase } from './fitness-local.mjs';
 import { createApp } from './app.mjs';
 import { getFitnessCatalog, normalizeVideoUrl, nutrition, validateDiet, validateWorkout } from './fitness-api.mjs';
+import marcosShorts from './marcos-shorts.json' with { type: 'json' };
 
 function setup(t) {
   const sqlite = new DatabaseSync(':memory:');
   const root = new URL('../cloudflare/migrations/', import.meta.url);
   for (const file of readdirSync(root).filter(x => x.endsWith('.sql')).sort()) sqlite.exec(readFileSync(new URL(file, root), 'utf8'));
-  const DB = fitnessDatabase(sqlite); const env = { DB, DASHBOARD_PASSWORD: 'fitness-test-password' };
+  const DB = fitnessDatabase(sqlite); const env = { DB, DASHBOARD_PASSWORD: randomBytes(24).toString('hex') };
   t.after(() => sqlite.close());
   async function request(path, { cookie, data, method = 'GET', headers = {} } = {}) {
     const response = await worker.fetch(new Request(`https://squad.example/api${path}`, { method,
@@ -38,8 +40,10 @@ const diet = { name: 'Plano individual', notes: '', meals: [{ name: 'Almoço', t
 
 test('catálogo inclui vídeos locais e TACO; cálculo em gramas e validação impedem prescrição inválida', async t => {
   const api = setup(t); const catalog = await getFitnessCatalog(api.DB);
-  assert.equal(catalog.exercises.length, 45); assert.equal(catalog.foods.length, 591);
-  for (const ex of catalog.exercises) {
+  assert.equal(catalog.exercises.length, 45 + marcosShorts.exercises.length); assert.equal(catalog.foods.length, 591);
+  const localExercises = catalog.exercises.filter(exercise => exercise.id.startsWith('wger-'));
+  assert.equal(localExercises.length, 45);
+  for (const ex of localExercises) {
     assert.match(ex.videoUrl, /^\/videos\/wger-\d+\.mp4$/);
     assert.ok(readFileSync(new URL(`../public${ex.videoUrl}`, import.meta.url)).length > 100);
     assert.equal(ex.license, 'CC BY-SA 4.0');
@@ -205,18 +209,19 @@ test('professor pode usar YouTube em exercícios existentes sem duplicá-los e r
   const updated = await api.request(path, { cookie: admin, method: 'PUT', data: { videoUrl: `https://youtu.be/${testId}` } });
   assert.equal(updated.status, 200);
   const library = (await api.request('/fitness/catalog', { cookie: a.cookie })).data;
-  assert.equal(library.exercises.length, 45); assert.equal(library.exercises.find(x => x.id === 'wger-371').videoUrl, `https://www.youtube.com/watch?v=${testId}`);
+  assert.equal(library.exercises.length, 45 + marcosShorts.exercises.length); assert.equal(library.exercises.find(x => x.id === 'wger-371').videoUrl, `https://www.youtube.com/watch?v=${testId}`);
   assert.equal(library.exercises.find(x => x.id === 'wger-371').license, '');
   assert.equal((await api.request(path, { cookie: admin, method: 'PUT', data: { restore: true } })).data.videoUrl, '/videos/wger-371.mp4');
 });
 
 test('adapter local mantém os mesmos acessos e prescrições do Worker', async t => {
-  const local = createApp({ databasePath: ':memory:', seedDemo: false, serveFrontend: false, authOptions: { password: 'local-test-password', required: true } });
+  const password = randomBytes(24).toString('hex');
+  const local = createApp({ databasePath: ':memory:', seedDemo: false, serveFrontend: false, authOptions: { password, required: true } });
   const server = local.app.listen(0, '127.0.0.1'); await new Promise(resolve => server.once('listening', resolve));
   t.after(async () => { await new Promise(resolve => server.close(resolve)); local.close(); });
   const url = `http://127.0.0.1:${server.address().port}`;
   const anonymous = await fetch(`${url}/api/fitness/catalog`); assert.equal(anonymous.status, 401);
-  const login = await fetch(`${url}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password: 'local-test-password' }) });
+  const login = await fetch(`${url}/api/auth/login`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ password }) });
   const cookie = login.headers.get('set-cookie').split(';')[0];
   const result = await fetch(`${url}/api/fitness/coach/overview`, { headers: { cookie } });
   assert.equal(result.status, 200); assert.deepEqual((await result.json()).clients, []);

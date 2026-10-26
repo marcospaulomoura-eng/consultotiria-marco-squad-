@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import type { ReactNode } from 'react';
 import { ArrowUpRight, Check, Clock3, Dumbbell, Play, Trophy, X, Flame, Utensils } from 'lucide-react';
 import { fitnessApi, format, totals, week } from './fitness-types';
+import { youtubeVideoId } from '../shared/youtube.mjs';
 import type { Diet, Exercise, Food, Totals, Workout } from './fitness-types';
 
 export function Empty({ icon = 'train', title, children }: { icon?: string; title: string; children: ReactNode }) {
@@ -30,13 +31,9 @@ export function Modal({ title, close, children }: { title: string; close: () => 
 }
 export function ExerciseVideo({ exercise, close }: { exercise: Exercise; close: () => void }) {
   const [failed, setFailed] = useState(false);
-  let youtubeId = '';
-  if (exercise.videoUrl.startsWith('https:')) {
-    const url = new URL(exercise.videoUrl);
-    if (['youtube.com', 'www.youtube.com', 'youtu.be'].includes(url.hostname)) youtubeId = url.hostname === 'youtu.be' ? url.pathname.slice(1) : url.searchParams.get('v') || url.pathname.split('/').at(-1) || '';
-  }
-  return <Modal title={exercise.name} close={close}><div className="fit-video">
-    {youtubeId && /^[\w-]{11}$/.test(youtubeId) ? <iframe title={exercise.name} src={`https://www.youtube-nocookie.com/embed/${youtubeId}`} allowFullScreen /> : <video controls playsInline autoPlay preload="metadata" src={exercise.videoUrl} onError={() => setFailed(true)} />}
+  const youtubeId = youtubeVideoId(exercise.videoUrl);
+  return <Modal title={exercise.name} close={close}><div className={`fit-video ${youtubeId && exercise.collection === 'marcos-shorts' ? 'fit-video-short' : ''}`}>
+    {youtubeId ? <iframe title={exercise.name} src={`https://www.youtube-nocookie.com/embed/${youtubeId}?rel=0&playsinline=1`} referrerPolicy="strict-origin-when-cross-origin" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowFullScreen /> : <video controls playsInline autoPlay preload="metadata" src={exercise.videoUrl} onError={() => setFailed(true)} />}
   </div><div className="fit-modal-body"><div className="fit-tags"><span>{exercise.category}</span><span>{exercise.equipment}</span></div><h3>Como executar</h3><p className="fit-instructions">{exercise.instructions}</p>{failed && <p role="alert" className="fit-error">Não foi possível reproduzir aqui. Use o link abaixo para abrir o vídeo.</p>}<a className="fit-text-link" href={exercise.videoUrl} target="_blank" rel="noreferrer">Abrir vídeo <ArrowUpRight size={14} /></a><p className="fit-credit">Vídeo: {exercise.author}{exercise.license && <> · <a href={exercise.licenseUrl} target="_blank" rel="noreferrer">{exercise.license}</a> · wger<br />{exercise.changes} {exercise.sourceUrl && <a href={exercise.sourceUrl} target="_blank" rel="noreferrer">Vídeo original no wger</a>}</>}</p></div></Modal>;
 }
 export function MacroBar({ value, compact = false }: { value: Totals; compact?: boolean }) {

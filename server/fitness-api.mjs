@@ -1,6 +1,8 @@
 import catalog from './fitness-catalog.json' with { type: 'json' };
+import marcosShorts from './marcos-shorts.json' with { type: 'json' };
 import { HttpError, assertSameOrigin } from '../cloudflare/auth.mjs';
 import { todayInSaoPaulo } from './domain.mjs';
+import { MARCOS_CHANNEL_URL, canonicalYoutubeUrl, youtubeVideoId } from '../shared/youtube.mjs';
 
 const enc = new TextEncoder();
 const DAY = 86400000;
@@ -51,9 +53,14 @@ async function readBody(request, limit = 32768) {
 
 export async function getFitnessCatalog(db) {
   const custom = (await db.prepare('SELECT kind, data FROM fitness_catalog ORDER BY id').all()).results;
+  const exercises = [...new Map([
+    ...marcosShorts.exercises, ...catalog.exercises,
+    ...custom.filter(x => x.kind === 'exercise').map(x => JSON.parse(x.data)),
+  ].map(x => [x.id, x])).values()];
   return {
-    exercises: [...new Map([...catalog.exercises, ...custom.filter(x => x.kind === 'exercise').map(x => JSON.parse(x.data))].map(x => [x.id, x])).values()],
+    exercises: [...exercises.filter(x => x.collection === 'marcos-shorts'), ...exercises.filter(x => x.collection !== 'marcos-shorts')],
     foods: [...catalog.foods, ...custom.filter(x => x.kind === 'food').map(x => JSON.parse(x.data))],
+    youtubeChannel: { url: MARCOS_CHANNEL_URL, name: marcosShorts.name },
   };
 }
 export function normalizeVideoUrl(value) {
@@ -61,13 +68,58 @@ export function normalizeVideoUrl(value) {
   let url; try { url = new URL(supplied); } catch { fail('Informe um endereço HTTPS de vídeo.'); }
   if (url.protocol !== 'https:' || url.username || url.password) fail('Use um endereço HTTPS de vídeo.');
   if (['youtube.com', 'www.youtube.com', 'm.youtube.com', 'youtu.be', 'www.youtube-nocookie.com'].includes(url.hostname)) {
-    const id = url.hostname === 'youtu.be' ? url.pathname.slice(1).split('/')[0]
-      : url.pathname === '/watch' ? url.searchParams.get('v') : /^\/(shorts|embed)\/[\w-]{11}\/?$/.test(url.pathname) ? url.pathname.split('/')[2] : '';
-    if (!id || !/^[\w-]{11}$/.test(id)) fail('Cole o link de um vídeo específico do YouTube, em vez do canal ou da busca.');
-    return `https://www.youtube.com/watch?v=${id}`;
+    const normalized = canonicalYoutubeUrl(supplied);
+    if (!normalized) fail('Cole o link de um vídeo específico do YouTube, em vez do canal ou da busca.');
+    return normalized;
   }
   if (!/\.(mp4|webm)$/i.test(url.pathname)) fail('Use um vídeo MP4/WebM HTTPS ou um link do YouTube.');
   return url.href;
+}
+function shortExercise(value) {
+  object(value);
+  const videoUrl = canonicalYoutubeUrl(text(value.videoUrl, 'o link do Short', 500));
+  if (!videoUrl) fail('Cole o link HTTPS de um vídeo específico do YouTube.');
+  const videoId = youtubeVideoId(videoUrl);
+  const optional = (field, label, max, fallback) => text(field ?? '', label, max, true) || fallback;
+  return {
+    id: `marcos-youtube-${videoId}`,
+    name: text(value.name, 'o nome do exercício'),
+    category: optional(value.category, 'o grupo muscular', 60, 'Não classificado'),
+    equipment: optional(value.equipment, 'o equipamento', 80, 'A confirmar'),
+    instructions: optional(value.instructions, 'as orientações', 2000, 'Assista à demonstração do professor e siga a prescrição individual.'),
+    videoUrl, sourceUrl: `https://www.youtube.com/shorts/${videoId}`,
+    author: 'Marcos Squad', license: '', licenseUrl: '',
+    collection: 'marcos-shorts', channelUrl: MARCOS_CHANNEL_URL,
+  };
+}
+
+async function importShorts(db, input) {
+  // Validate every row before the batch can write any record.
+  const rows = list(input.items, 'a lista de Shorts (1 a 50)', 50).map(shortExercise);
+  const current = await getFitnessCatalog(db);
+  const existingById = new Map(current.exercises.map(exercise => [exercise.id, exercise]));
+  const existingByVideo = new Map(current.exercises.filter(exercise => exercise.collection === 'marcos-shorts')
+    .map(exercise => [youtubeVideoId(exercise.videoUrl), exercise]));
+  const requestedIds = new Set(); const pending = [];
+  for (const exercise of rows) {
+    const existing = existingById.get(exercise.id) || existingByVideo.get(youtubeVideoId(exercise.videoUrl));
+    if (existing) { requestedIds.add(existing.id); continue; }
+    // Also deduplicate alternate share links inside the submitted batch.
+    existingById.set(exercise.id, exercise);
+    existingByVideo.set(youtubeVideoId(exercise.videoUrl), exercise);
+    requestedIds.add(exercise.id); pending.push(exercise);
+  }
+  let created = 0;
+  if (pending.length) {
+    // The stable ID and conflict rule make concurrent/repeated imports safe,
+    // while the atomic batch prevents partially inserted libraries.
+    const results = await db.batch(pending.map(exercise => db.prepare(
+      "INSERT INTO fitness_catalog (id, kind, data) VALUES (?, 'exercise', ?) ON CONFLICT(id) DO NOTHING",
+    ).bind(exercise.id, JSON.stringify(exercise))));
+    created = results.reduce((total, result) => total + Number(result.meta?.changes || 0), 0);
+  }
+  const saved = await getFitnessCatalog(db);
+  return json({ created, skipped: rows.length - created, exercises: saved.exercises.filter(exercise => requestedIds.has(exercise.id)) }, created ? 201 : 200);
 }
 export function nutrition(items, foods) {
   const totals = { kcal: 0, protein: 0, carbs: 0, fat: 0 };
@@ -254,6 +306,9 @@ export async function handleFitness(request, env, { isAdmin = false, now = new D
     await db.prepare('UPDATE fitness_access SET display_name = ?, community = ? WHERE client_id = ?')
       .bind(text(input.name, 'o nome na comunidade', 50), input.community ? 1 : 0, student.id).run();
     return json({ saved: true });
+  }
+  if (path === '/coach/shorts/import' && method === 'POST') {
+    return importShorts(db, await readBody(request));
   }
   if (path === '/coach/catalog' && method === 'POST') {
     const input = await readBody(request); let item; const id = uid();

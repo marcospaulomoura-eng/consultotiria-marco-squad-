@@ -1,6 +1,6 @@
-export type Exercise = { id: string; name: string; category: string; equipment: string; instructions: string; videoUrl: string; author: string; license: string; licenseUrl: string; changes?: string; sourceUrl?: string };
+export type Exercise = { id: string; name: string; category: string; equipment: string; instructions: string; videoUrl: string; author: string; license: string; licenseUrl: string; changes?: string; sourceUrl?: string; collection?: string; channelUrl?: string; videoTitle?: string; thumbnailUrl?: string; duration?: string };
 export type Food = { id: string; name: string; category: string; kcal: number; protein: number; carbs: number; fat: number; source: string; traceFields?: string[] };
-export type Catalog = { exercises: Exercise[]; foods: Food[] };
+export type Catalog = { exercises: Exercise[]; foods: Food[]; youtubeChannel?: { url: string; name: string } };
 export type WorkoutItem = { exerciseId: string; sets: number; reps: string; rest: number; load: string };
 export type Workout = { id?: string; name: string; days: number[]; notes: string; items: WorkoutItem[]; updatedAt?: string };
 export type FoodItem = { foodId: string; grams: number };

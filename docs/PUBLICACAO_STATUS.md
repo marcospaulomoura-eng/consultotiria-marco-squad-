@@ -1,4 +1,4 @@
-# Estado do aplicativo — 23/10/2026
+# Estado do aplicativo — 26/10/2026
 
 A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O usuário autorizou concluir e publicar; em seguida pediu testar e mostrar os resultados antes de publicar. Nenhum deploy na Vercel foi executado nesta etapa de revisão.
 
@@ -18,14 +18,21 @@ O usuário pediu adiar a configuração da conexão Supabase e continuar o desen
 - Aviso visível quando uma prescrição foi salva, mas a atualização seguinte falhou, permitindo recarregar sem reenviar a criação.
 - Contraste do funil de vendas, indicadores e estados de carregamento alinhado ao tema escuro.
 - Saída e expiração do aluno invalidam cargas pendentes, impedindo que uma resposta antiga restaure a interface da sessão anterior.
+- Biblioteca com 73 Shorts confirmados do canal do Marcos, além dos 45 exercícios anteriores, em lista com busca e filtros. Seleção direta para montar o treino do aluno e importação de novos links em lotes revisados de até 50 exercícios, sem duplicar os já cadastrados.
+- O estado do acesso individual é atualizado após a gravação, mesmo quando a recarga seguinte falha; a interface permite recuperar a leitura sem repetir a liberação.
+- Linhas de exercícios, refeições e alimentos mantêm a identidade durante exclusões e alterações. Os controles do editor ficam bloqueados enquanto o salvamento está em andamento.
 
 ## Verificações
 
-109 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos, runtime Vercel e preflight. O lint e o build React/TypeScript passaram.
+127 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos, runtime Vercel, preflight, validação de URLs do YouTube e importação da biblioteca de Shorts. O lint e o build React/TypeScript passaram.
 
-18 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas nas 38 respostas da API observadas. Um teste adicional confirmou que uma resposta atrasada na troca A → B → A não substitui a seleção atual. Todos os dados eram fictícios.
+Na rodada anterior, 18 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas nas 38 respostas da API observadas. Um teste adicional confirmou que uma resposta atrasada na troca A → B → A não substitui a seleção atual. Todos os dados eram fictícios.
 
 A revisão adicional passou por 8 fluxos de cadastro, financeiro e vendas, incluindo pagamento parcial, quitação e persistência após recarga. Regressões específicas de concorrência, catálogo, treino ativo, fotos e recuperação após erro foram reproduzidas antes e verificadas após as correções. Consulte [revisão dos fluxos e da interface](REVISAO_INTERFACE.md).
+
+Na rodada atual, seis verificações adicionais da biblioteca de Shorts passaram no Chromium, incluindo seleção para um aluno, gravação da ficha na API/PostgreSQL local, importação sem duplicatas e conclusão persistida pela área do aluno no celular. Não houve erros de JavaScript. O iframe remoto foi substituído no teste somente para conferir o endereço e o formato vertical; a reprodução real pelo YouTube ainda precisa ser validada no ambiente online. Consulte a [biblioteca e as telas](BIBLIOTECA_SHORTS.md).
+
+Seis verificações separadas de acesso passaram, incluindo liberação e revogação com falha na leitura seguinte, confirmação da rotação e cópia manual quando o clipboard não está disponível. A revisão dos editores confirmou a preservação dos rascunhos ao mover ou excluir linhas e a recuperação após falha de salvamento.
 
 A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
 

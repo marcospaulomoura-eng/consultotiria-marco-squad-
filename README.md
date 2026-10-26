@@ -2,7 +2,7 @@
 
 Aplicativo em português para uma consultoria de treino e dieta, com painel do professor e área individual do aluno. A arquitetura atual usa **React/TypeScript/Vite + API Node.js na Vercel + PostgreSQL no Supabase**. A implantação na Vercel ainda depende das configurações de servidor e da revisão antes da publicação. Os modos SQLite e Cloudflare/D1 anteriores foram mantidos para compatibilidade e testes.
 
-Inclui biblioteca de 45 exercícios com vídeo, opção de vídeos do YouTube, 591 alimentos TACO, prescrições em gramas, registro de treinos, top 5 mensal e comunidade com fotos, curtidas e comentários. Veja o [guia do aplicativo e dos acessos dos alunos](docs/APP_ALUNOS.md).
+Inclui uma biblioteca inicial de **73 Shorts confirmados do canal do Marcos e 45 exercícios anteriores** (118 exercícios), 591 alimentos TACO, prescrições em gramas, registro de treinos, top 5 mensal e comunidade com fotos, curtidas e comentários. Veja o [guia do aplicativo e dos acessos dos alunos](docs/APP_ALUNOS.md) e a [biblioteca de Shorts com a lista de exercícios](docs/BIBLIOTECA_SHORTS.md).
 
 ## Executar
 
@@ -35,6 +35,12 @@ O servidor Node serve a interface compilada e a API na porta 3001. `npm run prev
 - Os lembretes aparecem no painel; notificações opcionais do navegador funcionam enquanto ele estiver aberto, com a permissão concedida. Em produção, a Cloud API configurada permite envios agendados mesmo com o painel fechado.
 
 O modo SQLite local inclui nove clientes **fictícios** para demonstrar a interface. Os exemplos não têm números de telefone, evitando abrir conversas com pessoas reais. Use “Começar com meus clientes” para remover os exemplos; clientes reais já cadastrados são preservados. O Supabase inicia vazio e não recebe dados de demonstração automaticamente.
+
+## Biblioteca de exercícios e treinos
+
+Em **Treinos**, a biblioteca abre na lista “Shorts do Marcos”. Busque pelo nome, grupo ou equipamento, filtre a origem e use “Assistir Short” para conferir o vídeo. “Usar no treino” abre a ficha do aluno selecionado; quando nenhum aluno está selecionado, o painel pede a seleção antes de abrir a ficha com o exercício. Ajuste séries, repetições e descanso e salve para disponibilizar o treino na área individual do aluno.
+
+“Adicionar Shorts” permite colar uma lista ou abrir um arquivo CSV com nome e link de cada exercício. Revise de 1 a 50 linhas por vez antes de importar; links repetidos ou já cadastrados não duplicam exercícios nem substituem seus nomes. Os 45 exercícios anteriores continuam disponíveis em “Outros exercícios”. A lista inicial inclui 73 Shorts confirmados, sem afirmar que cobre todos os Shorts do canal. Veja [cobertura, formato de importação e telas](docs/BIBLIOTECA_SHORTS.md).
 
 ## Dados e configuração
 
@@ -96,4 +102,4 @@ npm run build
 npm run preflight
 ```
 
-Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel e migração/importação. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O preflight falha enquanto as configurações necessárias estiverem ausentes; não publica nem revela credenciais. Veja os [resultados e telas da revisão](docs/TESTES_SUPABASE_VERCEL.md). O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.
+Na revisão de 26/10/2026, os **127 testes automatizados passaram, sem falhas**, e o lint e o build passaram. Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel, migração/importação e a biblioteca/importação de Shorts. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O preflight falha enquanto as configurações necessárias estiverem ausentes; não publica nem revela credenciais. Veja os [resultados e telas da revisão](docs/TESTES_SUPABASE_VERCEL.md). O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.
