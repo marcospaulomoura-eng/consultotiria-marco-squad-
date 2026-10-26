@@ -5,6 +5,7 @@
 | Testes automatizados | 127 passaram; 0 falhas |
 | Chromium desktop e celular — rodada anterior | 18 verificações passaram |
 | Biblioteca de Shorts — rodada atual | 6 verificações adicionais passaram em desktop e celular |
+| Fichas completas de treino e dieta | 5 verificações passaram; 33 respostas da API com sucesso |
 | Player dos Shorts | ID real e formato vertical conferidos; reprodução remota ainda não validada |
 | Respostas atrasadas na seleção de aluno | Troca A → B → A mantém a prescrição atual |
 | Erros de JavaScript | 0 |
@@ -34,6 +35,22 @@ Nenhum erro de JavaScript foi observado nessa rodada. O iframe do YouTube foi in
 As correções adicionais preservam o estado de liberação do acesso após falha de recarga e evitam que a exclusão de uma linha transfira o texto parcial para outra linha dos editores de treino e dieta. Durante o salvamento, os controles dos editores ficam bloqueados.
 
 Uma rodada separada com seis verificações de acesso passou sem erros JavaScript: liberação e revogação seguidas de falha de leitura mantêm o estado correto; a rotação exige confirmação; cancelar não envia gravação; atualizar repete somente a leitura; e clipboard indisponível orienta a cópia manual. Nos editores, também foram conferidos rascunhos parciais ao mover ou excluir linhas, bloqueio durante o envio e recuperação da edição após erro.
+
+## Fichas completas: professor → aluno
+
+Uma nova rodada concluiu cinco verificações com cliente fictícia, API Node, PostgreSQL/PGlite local e Chromium em 1440 px e 390 px. As 33 respostas da API observadas tiveram sucesso e não houve erro JavaScript.
+
+1. O professor criou **Treino B**, com dois exercícios, dias da semana, séries, repetições, carga e descanso. A reordenação foi mantida na gravação.
+2. O professor criou um plano fictício com duas refeições, horários e quatro alimentos. Os totais foram comparados a um cálculo independente a partir das porções.
+3. A liberação do acesso e a cópia do texto individual foram conferidas, mantendo o código fora das evidências públicas.
+4. No celular, o aluno recebeu os exercícios na ordem salva, concluiu o checklist e registrou o treino; a sessão de aluno não autorizou o painel do professor.
+5. A dieta manteve alimentos, porções e macros após recarregar. O exemplo totalizou 650,8 kcal, 57 g de proteínas, 73 g de carboidratos e 14,2 g de gorduras; a interface arredonda a energia para 651 kcal.
+
+O título em execução usa somente o nome escolhido para a ficha. A prévia foi atualizada para **Treino B**.
+
+![Plano alimentar fictício no painel do professor](previews/dieta-professor-revisada.png)
+
+![O mesmo plano na área do aluno no celular](previews/dieta-aluno-revisada.png)
 
 Os testes de importação detectaram e levaram à correção de leitura inconsistente de uma origem SQLite ativa e importação de contratos/pagamentos de demonstração. As regressões passaram. O histórico financeiro de clientes reais excluídos é conservado.
 

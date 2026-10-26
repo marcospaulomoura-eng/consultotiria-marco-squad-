@@ -34,6 +34,8 @@ Na rodada atual, seis verificações adicionais da biblioteca de Shorts passaram
 
 Seis verificações separadas de acesso passaram, incluindo liberação e revogação com falha na leitura seguinte, confirmação da rotação e cópia manual quando o clipboard não está disponível. A revisão dos editores confirmou a preservação dos rascunhos ao mover ou excluir linhas e a recuperação após falha de salvamento.
 
+O fluxo completo de criação de treino e dieta até o celular do aluno foi concluído em cinco verificações adicionais, com 33 respostas da API bem-sucedidas e nenhum erro JavaScript. Dias, ordem, séries e descanso foram preservados; porções e macros coincidiram com cálculo independente e permaneceram após recarga. As evidências usam dados fictícios. A prévia do treino em andamento agora mostra apenas **Treino B**.
+
 A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
 
 O teste de gravações e rollback no Supabase remoto foi recusado pela ferramenta e não foi executado. Não atribuir a recusa a um motivo que não foi informado. Os testes de gravação locais passaram, mas não validam rede/TLS/pooler remoto.
