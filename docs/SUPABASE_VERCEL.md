@@ -6,6 +6,8 @@ A interface React/Vite e os vídeos são servidos pela Vercel. A função `api/i
 
 O projeto criado para esta migração é **Marcos Squad**, referência `avxdirsnlikufygnphoq`, região `sa-east-1`. A migração `supabase/migrations/202610220001_marcos_squad.sql` cria 20 tabelas no schema privado `marcos_squad` e já foi aplicada pela integração Supabase. Ela não altera tabelas de outros schemas nem inclui exemplos.
 
+O `vercel.json` define a API na região **São Paulo (`gru1`)**, próxima ao banco. Essa definição vale para o próximo deploy; não muda a região do Supabase nem comprova uma publicação. Os arquivos estáticos continuam distribuídos pela CDN da Vercel. A opção usa uma única região, conforme a [configuração de regiões das Functions](https://vercel.com/docs/functions/configuring-functions/region).
+
 No servidor, use `SUPABASE_DB_URL` com a conexão oferecida em **Connect → Transaction pooler** no Supabase. O adaptador usa uma conexão por instância, queries sem prepared statements nomeados, transações e TLS com certificado verificado. Quando o provedor exigir um certificado raiz próprio, use `SUPABASE_DB_CA`. Não desabilite a verificação TLS. [Conexões e pooler do Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
 
 O navegador não recebe conexão PostgreSQL, service role ou senha. Os papéis `anon` e `authenticated` não têm acesso ao schema. RLS sem políticas de cliente é intencional nesta arquitetura de API no servidor; acesso operacional deve ser configurado para uma conexão autorizada do servidor, nunca abrindo as tabelas para o frontend.

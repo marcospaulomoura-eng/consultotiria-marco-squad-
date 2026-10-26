@@ -6,6 +6,7 @@
 | Chromium desktop e celular — rodada anterior | 18 verificações passaram |
 | Biblioteca de Shorts — rodada atual | 6 verificações adicionais passaram em desktop e celular |
 | Fichas completas de treino e dieta | 5 verificações passaram; 33 respostas da API com sucesso |
+| Pacote isolado da API | Handler, driver PostgreSQL e catálogos carregaram em Node 24 |
 | Player dos Shorts | ID real e formato vertical conferidos; reprodução remota ainda não validada |
 | Respostas atrasadas na seleção de aluno | Troca A → B → A mantém a prescrição atual |
 | Erros de JavaScript | 0 |
@@ -59,6 +60,14 @@ A etapa seguinte de desenvolvimento acrescentou correções e verificações de 
 A migração foi aplicada ao Supabase e a estrutura conferida por consulta de leitura. O teste remoto de escrita foi recusado. A conexão operacional Vercel–Supabase e o aplicativo online ainda não foram validados.
 
 Repetir com npm test, npm run lint e npm run build. npm run preflight informa as configurações ausentes sem revelar valores; --database acrescenta consultas somente de leitura. Após publicar, executar npm run verify:deployment -- https://URL-CONFIRMADA.
+
+## Empacotamento para a Vercel
+
+Uma cópia isolada reuniu os 13 arquivos do grafo da API e 14 pacotes de dependências de produção: 152 arquivos, cerca de 785 KB. Um processo Node 24.19 com ambiente limpo importou o handler, o driver `pg`, os dois catálogos e o helper de URLs do YouTube. Foram confirmados 118 exercícios (73 Shorts e 45 anteriores) e 591 alimentos.
+
+Sem credenciais, o status de autenticação permaneceu não autenticado; saúde, painel, catálogo e cron retornaram 503 sem cache. Nenhum banco remoto, dado de cliente ou credencial de produção foi usado. Esse pacote foi montado localmente para conferir dependências e arquivos; não é a saída do builder da Vercel e não comprova deploy.
+
+O próximo deploy está configurado para a API em São Paulo (`gru1`), próxima ao Supabase em `sa-east-1`. O projeto remoto foi conferido como `marcos-squad`, Vite e Node 24; a lista de variáveis continuava vazia. A configuração operacional permanece pendente.
 
 ## Telas com dados fictícios
 

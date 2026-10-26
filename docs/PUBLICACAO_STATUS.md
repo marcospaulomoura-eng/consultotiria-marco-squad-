@@ -8,7 +8,7 @@ O usuário pediu adiar a configuração da conexão Supabase e continuar o desen
 
 - Adaptador PostgreSQL com pool serverless, TLS verificado, batches atômicos e repetição de conflitos de serialização.
 - Schema privado marcos_squad com as 20 tabelas do aplicativo e sem grants para o navegador.
-- Função Node 24 para a API, fallback React em /aluno, arquivos estáticos e cron protegido.
+- Função Node 24 para a API, configurada para São Paulo (`gru1`) no próximo deploy, fallback React em /aluno, arquivos estáticos e cron protegido.
 - Migração versionada e importador SQLite/D1 com snapshot consistente, rollback e proteção contra substituição de um destino ocupado.
 - Fluxos de professor, aluno, financeiro, treinos, alimentação e comunidade preservados.
 - Carregamento da prescrição iniciado pela seleção do professor, preservando a proteção contra respostas antigas ao alternar rapidamente entre alunos.
@@ -35,6 +35,8 @@ Na rodada atual, seis verificações adicionais da biblioteca de Shorts passaram
 Seis verificações separadas de acesso passaram, incluindo liberação e revogação com falha na leitura seguinte, confirmação da rotação e cópia manual quando o clipboard não está disponível. A revisão dos editores confirmou a preservação dos rascunhos ao mover ou excluir linhas e a recuperação após falha de salvamento.
 
 O fluxo completo de criação de treino e dieta até o celular do aluno foi concluído em cinco verificações adicionais, com 33 respostas da API bem-sucedidas e nenhum erro JavaScript. Dias, ordem, séries e descanso foram preservados; porções e macros coincidiram com cálculo independente e permaneceram após recarga. As evidências usam dados fictícios. A prévia do treino em andamento agora mostra apenas **Treino B**.
+
+A API também foi importada em uma pasta isolada, com somente seu grafo de arquivos e as dependências de produção. Os catálogos completos e o driver PostgreSQL carregaram em Node 24; sem configuração, as rotas permaneceram bloqueadas. Essa verificação local não executou o builder da Vercel nem contatou o Supabase remoto.
 
 A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
 
