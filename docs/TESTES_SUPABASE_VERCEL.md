@@ -13,10 +13,10 @@
 | Requisições falhas no fluxo visual | 0 |
 | Compilação React/TypeScript | Aprovada |
 | ESLint | Aprovado |
-| Schema Supabase remoto | 20 tabelas com RLS, sem acesso anônimo |
-| Gravação no Supabase remoto | Não executada: solicitação recusada |
+| Schema Supabase remoto | 21 tabelas com RLS, incluindo histórico; sem acesso anônimo |
+| Dados no Supabase remoto | Clientes não importados; histórico da migração reconciliado e conferido |
 | Deploy Vercel | Não executado nesta revisão |
-| Variáveis remotas Vercel | Lista vazia; configuração pendente |
+| Variáveis remotas Vercel | `CRON_SECRET` e `DASHBOARD_PASSWORD` sensíveis em Production; conexão do banco pendente |
 
 Os fluxos locais usaram PostgreSQL/PGlite real em memória, a função Node da Vercel e o React compilado para publicação. Os clientes, códigos, prescrições e publicações eram fictícios. Nenhum dado pessoal real ou credencial de produção foi usado.
 
@@ -57,7 +57,7 @@ Os testes de importação detectaram e levaram à correção de leitura inconsis
 
 A etapa seguinte de desenvolvimento acrescentou correções e verificações de rascunhos, fotos, respostas atrasadas, catálogo e treino ativo, além de oito fluxos de cadastro, financeiro e vendas. Consulte [revisão dos fluxos e da interface](REVISAO_INTERFACE.md). A configuração remota foi adiada a pedido do usuário.
 
-A migração foi aplicada ao Supabase e a estrutura conferida por consulta de leitura. O teste remoto de escrita foi recusado. A conexão operacional Vercel–Supabase e o aplicativo online ainda não foram validados.
+A migração foi aplicada ao Supabase e a estrutura conferida por consulta de leitura. O teste inicial de escrita havia sido recusado. Na retomada, o histórico foi reconciliado em transação com o arquivo original e seu checksum, preservando RLS e a ausência de permissão de schema para `anon` ou `authenticated`. A conexão operacional Vercel–Supabase e o aplicativo online ainda não foram validados.
 
 Repetir com npm test, npm run lint e npm run build. npm run preflight informa as configurações ausentes sem revelar valores; --database acrescenta consultas somente de leitura. Após publicar, executar npm run verify:deployment -- https://URL-CONFIRMADA.
 
@@ -67,7 +67,13 @@ Uma cópia isolada reuniu os 13 arquivos do grafo da API e 14 pacotes de depend�
 
 Sem credenciais, o status de autenticação permaneceu não autenticado; saúde, painel, catálogo e cron retornaram 503 sem cache. Nenhum banco remoto, dado de cliente ou credencial de produção foi usado. Esse pacote foi montado localmente para conferir dependências e arquivos; não é a saída do builder da Vercel e não comprova deploy.
 
-O próximo deploy está configurado para a API em São Paulo (`gru1`), próxima ao Supabase em `sa-east-1`. O projeto remoto foi conferido como `marcos-squad`, Vite e Node 24; a lista de variáveis continuava vazia. A configuração operacional permanece pendente.
+O próximo deploy está configurado para a API em São Paulo (`gru1`), próxima ao Supabase em `sa-east-1`. O projeto remoto foi conferido como `marcos-squad`, Vite e Node 24. Depois da revisão local, foram aplicados os ajustes de build e criado `CRON_SECRET` como variável sensível de Production. O usuário definiu `DASHBOARD_PASSWORD` no painel seguro. Uma leitura de metadados confirmou ambas, sem revelar seus valores. A conexão do banco ainda precisa ser preenchida diretamente na Vercel.
+
+## Preservação dos dados anteriores
+
+Separadamente dos testes com dados fictícios, o procedimento de preservação usa backup consistente, restauração em SQLite e ensaio local com PostgreSQL/PGlite. As conferências de campos, identificadores, ordem, contagens e totais financeiros são privadas. Sessões e tentativas de login ficam fora da importação. Registros, quantidades e valores de bancos privados não integram a documentação pública.
+
+Um plano transacional conferido no banco local também recusou destino ocupado e reverteu todas as gravações quando a contagem esperada foi alterada para simular falha. O SQL, os registros e os relatórios privados desse ensaio ficam fora do GitHub e dos ZIPs. Nenhum dado foi migrado para o Supabase remoto nessa etapa; o corte exige um novo snapshot e interrupção de gravações na origem.
 
 ## Telas com dados fictícios
 

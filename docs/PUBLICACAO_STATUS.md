@@ -2,7 +2,7 @@
 
 A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O usuário autorizou concluir e publicar; em seguida pediu testar e mostrar os resultados antes de publicar. Nenhum deploy na Vercel foi executado nesta etapa de revisão.
 
-O usuário pediu adiar a configuração da conexão Supabase e continuar o desenvolvimento. Essa configuração permanece pendente, sem bloquear a revisão e os testes locais e sem novas solicitações do Host nesta etapa.
+O usuário havia pedido adiar a configuração da conexão Supabase para concluir a revisão local. Após os testes e a apresentação das telas, pediu avançar à próxima etapa. A configuração remota foi retomada em 26/10/2026: o banco está ativo, a Vercel está preparada e resta a conexão privada do banco. A senha do professor já foi definida pelo usuário no painel seguro.
 
 ## Implementação
 
@@ -38,20 +38,24 @@ O fluxo completo de criação de treino e dieta até o celular do aluno foi conc
 
 A API também foi importada em uma pasta isolada, com somente seu grafo de arquivos e as dependências de produção. Os catálogos completos e o driver PostgreSQL carregaram em Node 24; sem configuração, as rotas permaneceram bloqueadas. Essa verificação local não executou o builder da Vercel nem contatou o Supabase remoto.
 
-A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Uma consulta somente de leitura confirmou 20 tabelas com RLS, marcador correto da aplicação, sem acesso de schema para anon ou authenticated, e nenhum cliente ou contrato importado.
+A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Na retomada, foi reconciliado o registro da migração com o arquivo original e seu checksum exato. A estrutura versionada contém as 20 tabelas do aplicativo e o registro `schema_migrations`, com RLS e sem acesso de schema para `anon` ou `authenticated`. A importação operacional continua pendente.
 
-O teste de gravações e rollback no Supabase remoto foi recusado pela ferramenta e não foi executado. Não atribuir a recusa a um motivo que não foi informado. Os testes de gravação locais passaram, mas não validam rede/TLS/pooler remoto.
+Na rodada inicial, o teste de gravações e rollback no Supabase remoto foi recusado pela ferramenta e não foi executado. A retomada aplicou e verificou somente a reconciliação do histórico; a migração de clientes permanece pendente. Os ensaios locais passaram, mas não validam rede/TLS/pooler remoto.
 
 O aviso informativo rls_enabled_no_policy é esperado nesta arquitetura de schema privado e API no servidor. Nenhum acesso público foi concedido para suprimir esse aviso.
 
-O acesso ao projeto Vercel foi confirmado pelo ID no escopo padrão da conexão, o mesmo usado na criação. A consulta com seleção explícita do workspace retornou 403, mas não exige reconexão para este projeto. A lista de variáveis remotas está vazia; o vínculo local não as substitui.
+O acesso ao projeto Vercel foi confirmado pelo ID no escopo padrão da conexão, o mesmo usado na criação. A consulta com seleção explícita do workspace retornou 403, mas as operações no projeto funcionam no escopo padrão. A configuração remota foi atualizada para Vite, Node 24, `npm ci`, build `npm run build`, saída `dist` e API em São Paulo. `CRON_SECRET` foi gerado e salvo como variável sensível somente em Production. O usuário definiu `DASHBOARD_PASSWORD`, também sensível em Production. A presença de ambas foi conferida sem ler seus valores. Falta `SUPABASE_DB_URL`, a preencher diretamente no painel seguro da Vercel.
 
-Uma leitura somente por contagens do SQLite local encontrou 9 clientes de demonstração e nenhum cliente regular. A origem Cloudflare/D1 não foi conferida nesta rodada; não confundir essas contagens com um inventário do banco remoto antigo.
+A integração não oferece a senha de bancos existentes nem o endereço do pooler; não foram usados hosts inferidos ou chaves públicas como substitutos da conexão PostgreSQL.
+
+O corte de plataforma exige preservar a origem Cloudflare/D1 com backup consistente e conferência privada de integridade. O arquivo de backup fica em armazenamento privado com permissões restritas e não integra o GitHub ou o ZIP. O procedimento não substitui um snapshot atualizado e a interrupção das gravações durante o corte final.
+
+O importador existente também foi exercitado com esse backup em PostgreSQL/PGlite local. Quantidades, campos, identificadores, ordem das atividades e totais financeiros coincidiram com a origem; sessões e tentativas de login foram excluídas. As verificações de destino ocupado e falha de contagem preservaram o destino e reverteram as gravações, respectivamente. Esse ensaio não transferiu dados para o Supabase remoto.
 
 ## Pendências de publicação
 
-1. Confirmar o Host do Transaction pooler em Connect no Supabase e configurar uma conexão operacional e as credenciais somente do servidor na Vercel. O conector disponível não expõe a configuração do pooler; o host não deve ser inferido pela região. Não reutilizar placeholders do ambiente Cloudflare como valores reais.
-2. Transferir os dados antigos, se houver, com origem congelada durante o corte e destino vazio. Nenhum dado real foi transferido nesta revisão.
+1. Salvar a URI completa do Transaction pooler como `SUPABASE_DB_URL`, Secret/Sensitive em Production na Vercel. A senha não passa pelo chat, GitHub ou ZIP. `DASHBOARD_PASSWORD` e `CRON_SECRET` já estão configurados. O conector não expõe a configuração do pooler; não inferir o host pela região nem reutilizar placeholders do ambiente Cloudflare.
+2. Transferir os dados anteriores com backup consistente, origem congelada durante o corte e destino vazio. A importação operacional continua pendente.
 3. Validar a escrita no Supabase e realizar o deploy Vercel após a apresentação dos testes solicitada pelo usuário.
 4. Conferir a proteção adicional da Vercel para permitir acesso dos alunos e executar npm run verify:deployment com a URL confirmada.
 
