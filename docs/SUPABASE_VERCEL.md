@@ -1,71 +1,81 @@
-# Marcos Squad — Supabase e Vercel
+# Marcos Squad — configurar Supabase e Vercel
 
-A interface React/Vite e os vídeos são servidos pela Vercel. A função `api/index.mjs` atende `/api/*` usando PostgreSQL no Supabase. Os fluxos de professor, alunos, financeiro, prescrição e comunidade mantêm o contrato da interface existente.
+Este guia descreve como preparar uma instalação do código com React/Vite, API Node.js na Vercel e PostgreSQL no Supabase.
 
-## Banco
+## Arquitetura do código
 
-O projeto criado para esta migração é **Marcos Squad**, referência `avxdirsnlikufygnphoq`, região `sa-east-1`. A migração `supabase/migrations/202610220001_marcos_squad.sql` cria 20 tabelas no schema privado `marcos_squad` e já foi aplicada pela integração Supabase. Ela não altera tabelas de outros schemas nem inclui exemplos.
+A função `api/index.mjs` atende `/api/*`. A interface e os vídeos ficam nos arquivos estáticos do build. O navegador usa as rotas autenticadas da API; a conexão PostgreSQL fica somente no servidor.
 
-O registro canônico dessa versão foi reconciliado com o checksum exato do arquivo. O banco agora contém as 20 tabelas do aplicativo mais `schema_migrations`, totalizando 21 tabelas privadas com RLS, sem conceder acesso de schema aos papéis do navegador. Nenhum cadastro antigo foi importado nessa reconciliação.
+A migração em `supabase/migrations` define o schema privado `marcos_squad`. O migrador verifica a identidade do aplicativo, usa transação e registra as versões e os checksums em `schema_migrations`. Revise esse arquivo antes de aplicá-lo na sua instalação.
 
-O `vercel.json` define a API na região **São Paulo (`gru1`)**, próxima ao banco. Essa definição vale para o próximo deploy; não muda a região do Supabase nem comprova uma publicação. Os arquivos estáticos continuam distribuídos pela CDN da Vercel. A opção usa uma única região, conforme a [configuração de regiões das Functions](https://vercel.com/docs/functions/configuring-functions/region).
+O `vercel.json` configura Vite, Node 24, build `npm run build`, saída `dist` e API em São Paulo (`gru1`). Ao escolher o banco, confira a proximidade entre as regiões. A API é resolvida antes do fallback da SPA; arquivos ausentes em `/assets`, `/brand` e `/videos` retornam 404. Consulte [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite) e [regiões das Functions](https://vercel.com/docs/functions/configuring-functions/region).
 
-No servidor, use `SUPABASE_DB_URL` com a conexão oferecida em **Connect → Transaction pooler** no Supabase. O adaptador usa uma conexão por instância, queries sem prepared statements nomeados, transações e TLS com certificado verificado. Quando o provedor exigir um certificado raiz próprio, use `SUPABASE_DB_CA`. Não desabilite a verificação TLS. [Conexões e pooler do Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
+## Configuração do servidor
 
-O navegador não recebe conexão PostgreSQL, service role ou senha. Os papéis `anon` e `authenticated` não têm acesso ao schema. RLS sem políticas de cliente é intencional nesta arquitetura de API no servidor; acesso operacional deve ser configurado para uma conexão autorizada do servidor, nunca abrindo as tabelas para o frontend.
+Escolha os projetos da sua instalação nos painéis do [Supabase](https://supabase.com/dashboard) e da [Vercel](https://vercel.com/dashboard). Vincule o repositório ao projeto Vercel que receberá o aplicativo.
 
-Para aplicar migrações pelo CLI local, com conexão segura configurada em `.env`:
+No Supabase, obtenha a URI em **Connect → Transaction pooler**, incluindo a senha do banco no campo correspondente. Use o host fornecido pelo painel. A senha do banco e as chaves de API têm finalidades diferentes; uma chave publishable ou service role não substitui a conexão PostgreSQL usada pelo adaptador.
+
+Defina as variáveis no ambiente de servidor da Vercel, com o tipo Secret/Sensitive quando aplicável:
+
+| Nome | Finalidade |
+| --- | --- |
+| `SUPABASE_DB_URL` | URI PostgreSQL do Transaction pooler |
+| `DASHBOARD_PASSWORD` | Senha do professor, com pelo menos 12 caracteres e até 256 bytes UTF-8 |
+| `CRON_SECRET` | Segredo aleatório de pelo menos 16 caracteres para o agendamento interno |
+| `SUPABASE_DB_CA` | Certificado raiz opcional, quando exigido pelo provedor |
+
+O modelo vazio fica em `config/environment.example`:
+
+```dotenv
+SUPABASE_DB_URL=
+DASHBOARD_PASSWORD=
+CRON_SECRET=
+SUPABASE_DB_CA=
+```
+
+Para execução local, copie o modelo para um arquivo `.env` ignorado pelo Git e preencha os valores somente nesse arquivo. Na hospedagem, salve-os nas configurações seguras do projeto e confira o ambiente de destino. Preserve a separação entre produção e testes.
+
+O adaptador usa uma conexão por instância, transações, queries sem prepared statements nomeados e TLS com certificado verificado. Quando necessário, forneça o certificado em `SUPABASE_DB_CA`; mantenha a validação TLS habilitada. Consulte [conexões e pooler do Supabase](https://supabase.com/docs/guides/database/connecting-to-postgres).
+
+Credenciais e conexões privadas devem ficar fora da conversa, do código, dos arquivos compartilhados e de variáveis com prefixo `VITE_`. O frontend deve acessar os dados pela API autenticada, conforme o desenho do aplicativo.
+
+## Aplicar migrações
+
+Com a conexão segura configurada para o processo local:
 
 ```bash
 npm ci
 npm run supabase:migrate
 ```
 
-O migrador verifica a identidade do schema, registra checksums, usa uma transação e recusa adotar tabelas de uma instalação não identificada. Se a migração inicial foi aplicada pela integração, a primeira execução local apenas reconcilia seu registro e as estruturas idempotentes.
+O migrador recusa adotar um schema pertencente a outra aplicação e recusa um checksum incompatível com o histórico registrado. Se uma versão já tiver sido aplicada por outro fluxo, confira a identidade e o histórico antes de reconciliá-la usando o procedimento do código.
 
-## Preservar os dados anteriores
+## Preservar e importar dados anteriores
 
-Antes de compartilhar o novo aplicativo, preserve os dados anteriores com backup consistente e valide a migração em ambiente privado. O backup não integra o código, o GitHub ou o ZIP para download. Não publique registros, contagens ou valores obtidos de bancos privados.
+Antes do corte, faça um backup consistente e valide a restauração em ambiente privado. Interrompa gravações no aplicativo anterior durante o corte definitivo e obtenha um snapshot atualizado.
 
-1. Faça um backup e interrompa novas gravações no aplicativo anterior durante o corte definitivo. Uma cópia consistente representa um instante; mudanças posteriores não entram automaticamente no novo banco.
-2. Prepare o Supabase e importe **antes do primeiro acesso que grava configurações/dados**, pois o importador exige destino vazio.
-3. Para SQLite, utilize uma cópia consistente do arquivo, preservando a pasta original. O importador também lê a origem em um único snapshot.
+Importe antes do primeiro acesso que grava configurações ou dados no novo aplicativo: o importador exige destino vazio. Para SQLite, use uma cópia consistente, preservando o arquivo original:
 
 ```bash
 npm run supabase:import -- --sqlite /CAMINHO/backup.sqlite
 ```
 
-Para origem Cloudflare D1, exporte o banco original com o Wrangler autenticado, usando o vínculo existente:
+Para uma instalação anterior em Cloudflare D1, use o Wrangler autenticado e a configuração correspondente à sua própria instalação:
 
 ```bash
+mkdir -p work
 node scripts/wrangler.mjs d1 export DB --remote --config .wrangler/deploy-config.json --output work/d1-export.sql
 npm run supabase:import -- --d1-sql work/d1-export.sql
 ```
 
-Crie a pasta `work/` antes da exportação. Ela é ignorada pelo Git e pela publicação Vercel. O export contém dados privados e deve ficar fora de arquivos compartilhados.
+A pasta `work/` é ignorada pelo Git e pela publicação Vercel. Mantenha backups e relatórios com permissões restritas, fora dos ZIPs de código e de qualquer repositório público. Registros, contagens e valores de bancos privados não pertencem à documentação compartilhada.
 
-O importador preserva identificadores, configurações, histórico financeiro, prescrições e comunidade. Não importa demonstrações nem sessões/tentativas de login; todos entram novamente no novo endereço. Códigos individuais existentes permanecem como hashes. A origem não é alterada. O destino é bloqueado contra gravações concorrentes durante a transação e a importação é revertida se alguma inserção ou contagem falhar. Destinos com dados são recusados, sem merge automático.
+O importador lê um único snapshot da origem, preserva identificadores e dados do aplicativo e exclui demonstrações, sessões e tentativas de login. O destino é bloqueado durante a transação; uma falha de inserção ou contagem reverte a importação. Um destino ocupado é recusado, sem substituição ou merge automático.
 
-## Vercel
+## Verificar e publicar
 
-Foi criado o projeto **marcos-squad**, ID `prj_yQHuYU7pQrW0cb4KZlO4UC6JnORY`. A configuração local `.vercel/project.json` registra o vínculo e fica ignorada pelo Git. Nenhum deploy é comprovado pela simples criação do projeto.
-
-As configurações de build já estão em `vercel.json`: Vite, `npm run build`, saída `dist` e Node 24. A API é resolvida antes do fallback da SPA. Arquivos ausentes em `/assets`, `/brand` e `/videos` retornam 404, em vez de HTML. [Vite na Vercel](https://vercel.com/docs/frameworks/frontend/vite).
-
-Configure apenas no servidor: `SUPABASE_DB_URL`, `DASHBOARD_PASSWORD` e `CRON_SECRET`, além do certificado opcional e das variáveis WhatsApp quando utilizadas. Nenhuma delas deve ter prefixo `VITE_`. Não envie credenciais na conversa nem no código. O calendário do aplicativo usa São Paulo; o cron diário é `0 12 * * *` UTC e exige `Authorization: Bearer CRON_SECRET`. Sem credenciais da Meta a rotina não envia mensagens.
-
-Em 26/10/2026, o build foi configurado no projeto remoto e `CRON_SECRET` foi gerado e salvo como variável sensível de Production. O usuário também salvou `DASHBOARD_PASSWORD`; a presença e o escopo foram conferidos sem ler o valor. Resta a conexão do banco nas [variáveis do Marcos Squad](https://vercel.com/marcospaulo-moura-4543/marcos-squad/settings/environment-variables), com tipo **Secret/Sensitive** e ambiente **Production**:
-
-| Nome | Valor a preencher no painel seguro |
-| --- | --- |
-| `SUPABASE_DB_URL` | URI completa de [Connect → Transaction pooler](https://supabase.com/dashboard/project/avxdirsnlikufygnphoq?showConnect=true&method=transaction), substituindo `[YOUR-PASSWORD]` pela senha do banco |
-| `DASHBOARD_PASSWORD` | Já definida pelo usuário; senha do professor com pelo menos 12 caracteres |
-
-A senha do banco não é a senha da conta Supabase. A integração disponível não recupera a senha de projetos existentes, e uma chave publishable/service role não substitui essa senha no driver PostgreSQL. Não copie valores privados para a conversa nem para arquivos compartilhados. O deploy e a verificação da conexão só podem avançar depois que esses valores forem salvos.
-
-A proteção adicional da própria Vercel precisa ser conferida antes de compartilhar `/aluno`: uma exigência de login na Vercel pode impedir que alunos externos abram o app. A proteção de dados do aplicativo continua sendo seu login e seus códigos individuais.
-
-## Verificação antes da publicação
+Execute os checks locais antes de publicar:
 
 ```bash
 npm test
@@ -74,12 +84,18 @@ npm run build
 npm run preflight
 ```
 
-O preflight verifica arquivos e nomes das configurações no processo, sem ler `.env` nem exibir seus valores. Falha enquanto faltarem `SUPABASE_DB_URL`, `DASHBOARD_PASSWORD` ou `CRON_SECRET`. Com as variáveis fornecidas de forma segura ao processo, `npm run preflight -- --database` também confere a identidade do aplicativo, colunas e checksums das migrações em uma transação somente de leitura. Não migra, importa, inicializa dados nem publica. O vínculo local não comprova acesso à conta Vercel.
+O preflight confere os arquivos e as configurações fornecidas ao processo, sem ler `.env` nem mostrar valores. Com a conexão segura disponível, `npm run preflight -- --database` também verifica a identidade, as colunas e os checksums em transação somente de leitura.
 
-Os testes usam apenas dados fictícios. PGlite executa o PostgreSQL real em memória, mas não comprova rede, TLS ou o comportamento de duas conexões independentes do pooler remoto. Após publicar, execute:
+Os testes locais com PostgreSQL/PGlite conferem o comportamento do código. A conexão de rede, o certificado, o pooler e o runtime da hospedagem precisam de validação na instalação de destino.
+
+Confira a proteção de acesso da Vercel antes de compartilhar `/aluno`, para que ela permita o público pretendido. O login do professor e os códigos individuais continuam sendo a autenticação do aplicativo.
+
+O cron configurado no código é `0 12 * * *` UTC e exige `Authorization: Bearer CRON_SECRET`. Para usar envios automáticos, configure separadamente as credenciais e os modelos do provedor descritos no [guia de WhatsApp](WHATSAPP_CLOUD_API.md).
+
+Após o deploy, valide a URL confirmada:
 
 ```bash
-npm run verify:deployment -- https://ENDERECO-CONFIRMADO.vercel.app
+npm run verify:deployment -- https://ENDERECO-DA-INSTALACAO.vercel.app
 ```
 
-Esse teste confere saúde, autenticação, `/aluno`, rotas protegidas, marca e arquivos de exercício. Uma URL só deve ser informada como pronta após a verificação online.
+Esse comando confere saúde, autenticação, área do aluno, rotas protegidas, marca e arquivos de exercício. Considere a instalação pronta depois que essas verificações passarem.

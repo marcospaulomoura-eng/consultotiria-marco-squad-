@@ -10,6 +10,14 @@ O painel de gestão continua em `/`, com a senha atual. Clientes, contratos, rec
 4. Clique em **Liberar acesso**, copie o código individual e compartilhe diretamente com o aluno junto do endereço `/aluno`. O código só é mostrado ao gerar; não é recuperável pelo painel. **Novo código** encerra todas as sessões anteriores. **Revogar acesso** preserva prescrições, histórico e publicações.
 5. Use **Comunidade Squad** para acompanhar o feed, o top 5 e moderar publicações/comentários.
 
+## Selecionar exercícios e alimentos
+
+Digite parte do nome e escolha uma opção da lista. Quando há exercícios com o mesmo nome, o campo mostra a origem, como **Rosca martelo · Seu canal** e **Rosca martelo · Biblioteca base**. Assim, a ficha usa a demonstração escolhida e conserva essa escolha ao editar séries ou repetições.
+
+Alimentos de mesmo nome também mostram a fonte, como **TACO** ou **Personalizado**; informações adicionais distinguem cadastros quando necessário. Um nome que corresponde a mais de uma opção pede a escolha do cadastro antes de salvar. Textos de busca ainda incompletos são preservados ao mover ou remover outras linhas da ficha.
+
+Ao cadastrar um exercício ou alimento, ou trocar um vídeo, os campos ficam bloqueados durante o envio. Se houver falha, o formulário conserva os valores e permite corrigir ou tentar novamente. Veja as [telas e verificações dos formulários](REVISAO_FORMULARIOS.md).
+
 ## Vídeos do YouTube
 
 **Treinos** abre na biblioteca, com 73 Shorts confirmados do canal do Marcos e os 45 exercícios anteriores. Use a busca e os filtros para encontrar um movimento, **Assistir Short** para conferir o vídeo e **Usar no treino** para montar a ficha do aluno. **Adicionar Shorts** recebe uma lista revisada de nomes e links, sem duplicar os já cadastrados. Veja o [guia da biblioteca e a lista completa](BIBLIOTECA_SHORTS.md).
@@ -25,6 +33,7 @@ Também é possível cadastrar novos exercícios com vídeo HTTPS MP4/WebM ou Yo
 - Acesso em `/aluno` com código individual; sessão de até 30 dias em cookie HttpOnly/SameSite.
 - Abas **Meu dia**, **Treinos**, **Minha dieta** e **Squad**.
 - Para registrar um treino, marque todos os exercícios e conclua. Há temporizador de descanso e demonstração de cada movimento. O mesmo treino só é registrado uma vez no mesmo dia; o servidor usa a data de São Paulo.
+- Cada marcação identifica o exercício para leitores de tela e pode ser acionada pelo teclado. Durante o registro, as marcações ficam bloqueadas; uma falha mantém o checklist preenchido para nova tentativa.
 - O top 5 usa **dias distintos com treino concluído no mês corrente**. Vários treinos no mesmo dia contam um ponto. Empates consideram o primeiro registro do mês. Não são geradas atividades fictícias.
 - O aluno escolhe o nome público e ativa sua participação para aparecer no ranking e publicar/interagir. Ao sair, seu conteúdo fica oculto; o histórico privado permanece.
 - Feed privado da consultoria: texto, foto, curtidas, comentários e exclusão. Alunos só removem o próprio conteúdo; o professor pode moderar todo o feed. O feed tem paginação.
@@ -41,7 +50,7 @@ Também é possível cadastrar novos exercícios com vídeo HTTPS MP4/WebM ou Yo
 
 A arquitetura atual usa React e API Node na Vercel com PostgreSQL no Supabase. As tabelas ficam no schema privado `marcos_squad`, acessado somente pela API; o navegador não recebe credenciais de banco. A migração versionada fica em `supabase/migrations`. Os adaptadores anteriores SQLite e Cloudflare/D1 permanecem disponíveis para compatibilidade e testes.
 
-A conexão operacional com o Supabase continua adiada a pedido do usuário. A versão Vercel ainda não foi publicada nem validada online; consulte o [estado da publicação](PUBLICACAO_STATUS.md).
+A conexão operacional com o Supabase foi novamente adiada a pedido do usuário em 27/10/2026, para continuar as melhorias do aplicativo. A versão Vercel ainda não foi publicada nem validada online; consulte o [estado da publicação](PUBLICACAO_STATUS.md).
 
 Fotos são comprimidas no navegador para JPEG de até 180 KB e persistidas no banco, com limite de cinco posts por aluno em 24 horas. Fotos não ficam em URLs públicas: o endpoint exige sessão e participação do autor. São aceitos JPG/PNG/WebP de até 12 MB antes da compressão; o canvas remove metadados do arquivo original. Para comunidades grandes, migre as fotos para armazenamento de objetos antes de atingir os limites do banco. Não há moderação automática de imagem.
 
@@ -51,4 +60,4 @@ Dados do aplicativo dependem de conexão; é um aplicativo web responsivo, acess
 
 ## Verificação
 
-`npm test`, `npm run lint` e `npm run build`. Os testes cobrem isolamento entre alunos e professor, rotação/revogação, CSRF, limites, cálculos, gravação, ranking, comunidade, fotos, troca/restauração de vídeos e importação dos Shorts. Os fluxos visuais usam Chromium, incluindo vídeo local, foto, dieta em gramas e celular. A reprodução remota do YouTube ainda precisa ser validada online. Veja os [resultados e telas](TESTES_SUPABASE_VERCEL.md). O pacote Cloudflare anterior pode ser conferido separadamente com `npm run cloud:check`.
+`npm test`, `npm run lint` e `npm run build`. Na revisão de 27/10/2026, 130 testes passaram, além do lint e do build. Os testes cobrem isolamento entre alunos e professor, rotação/revogação, CSRF, limites, cálculos, gravação, ranking, comunidade, fotos, troca/restauração de vídeos, importação dos Shorts e seleção de nomes iguais. Os fluxos visuais usam Chromium, incluindo vídeo local, foto, dieta em gramas e celular. A reprodução remota do YouTube ainda precisa ser validada online. Veja os [resultados e telas](TESTES_SUPABASE_VERCEL.md). O pacote Cloudflare anterior pode ser conferido separadamente com `npm run cloud:check`.

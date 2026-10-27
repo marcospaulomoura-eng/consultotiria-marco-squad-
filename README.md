@@ -42,6 +42,8 @@ Em **Treinos**, a biblioteca abre na lista “Shorts do Marcos”. Busque pelo n
 
 “Adicionar Shorts” permite colar uma lista ou abrir um arquivo CSV com nome e link de cada exercício. Revise de 1 a 50 linhas por vez antes de importar; links repetidos ou já cadastrados não duplicam exercícios nem substituem seus nomes. Os 45 exercícios anteriores continuam disponíveis em “Outros exercícios”. A lista inicial inclui 73 Shorts confirmados, sem afirmar que cobre todos os Shorts do canal. Veja [cobertura, formato de importação e telas](docs/BIBLIOTECA_SHORTS.md).
 
+Ao montar a ficha, exercícios com o mesmo nome mostram a origem, como **Seu canal** ou **Biblioteca base**. Escolha a opção correspondente ao vídeo desejado. Alimentos de mesmo nome também distinguem a fonte e o cadastro personalizado. A ficha conserva o cadastro escolhido ao editar repetições ou quantidades. Os formulários de catálogo e troca de vídeo bloqueiam os campos durante o envio e preservam o preenchimento quando ocorre uma falha. Veja a [revisão dos formulários e da seleção de exercícios](docs/REVISAO_FORMULARIOS.md).
+
 ## Dados e configuração
 
 No Supabase, os dados ficam no schema privado `marcos_squad`. As credenciais de conexão ficam apenas na API da Vercel; nenhuma variável `VITE_` contém senha, chave administrativa ou URL do banco. As tabelas têm RLS e não concedem acesso aos papéis públicos `anon` e `authenticated`: o navegador usa as rotas protegidas da API.
@@ -74,6 +76,8 @@ O painel inclui login por senha para um operador. No modo Supabase/Vercel, o log
 
 Veja o guia [Supabase e Vercel](docs/SUPABASE_VERCEL.md) e o [estado da publicação](docs/PUBLICACAO_STATUS.md). `vercel.json` configura o build Vite, a função Node 24, as rotas da API, o acesso direto a `/aluno` e o cron diário.
 
+Em 27/10/2026, o usuário pediu continuar o desenvolvimento e deixar a conexão operacional do Supabase para depois. A versão Vercel continua sem publicação; os testes locais e as telas de revisão permanecem disponíveis.
+
 Depois de publicar, valide o endereço real:
 
 ```bash
@@ -102,4 +106,4 @@ npm run build
 npm run preflight
 ```
 
-Na revisão de 26/10/2026, os **127 testes automatizados passaram, sem falhas**, e o lint e o build passaram. Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel, migração/importação e a biblioteca/importação de Shorts. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O preflight falha enquanto as configurações necessárias estiverem ausentes; não publica nem revela credenciais. Veja os [resultados e telas da revisão](docs/TESTES_SUPABASE_VERCEL.md). O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.
+Na revisão de 27/10/2026, os **130 testes automatizados passaram, sem falhas**, e o lint e o build passaram. Os testes validam datas, financeiro, autenticação, isolamento entre alunos, APIs, persistência SQLite/D1, PostgreSQL real em memória com PGlite, adaptação Node/Vercel, migração/importação, biblioteca/importação de Shorts e seleção de cadastros com nomes iguais. Dados de teste são isolados dos dados de uso. Testes PGlite não substituem a verificação da conexão ao Supabase e do deploy real da Vercel. O preflight falha enquanto as configurações necessárias estiverem ausentes; não publica nem revela credenciais. Veja os [resultados e telas da revisão](docs/TESTES_SUPABASE_VERCEL.md). O pacote Workers anterior ainda pode ser verificado com `npm run cloud:check`.

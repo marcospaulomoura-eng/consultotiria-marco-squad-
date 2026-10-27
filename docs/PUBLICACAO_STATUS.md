@@ -1,66 +1,26 @@
-# Estado do aplicativo — 26/10/2026
+# Estado do aplicativo — 27/10/2026
 
-A estratégia atual é React e API Node na Vercel, com PostgreSQL no Supabase. O usuário autorizou concluir e publicar; em seguida pediu testar e mostrar os resultados antes de publicar. Nenhum deploy na Vercel foi executado nesta etapa de revisão.
+A versão atual reúne React/TypeScript/Vite, API Node e suporte a PostgreSQL no Supabase. A conexão operacional e a publicação foram deixadas para depois a pedido do usuário. Esta revisão avançou nos formulários e na experiência do aluno; nenhum deploy foi executado nesta rodada.
 
-O usuário havia pedido adiar a configuração da conexão Supabase para concluir a revisão local. Após os testes e a apresentação das telas, pediu avançar à próxima etapa. A configuração remota foi retomada em 26/10/2026: o banco está ativo, a Vercel está preparada e resta a conexão privada do banco. A senha do professor já foi definida pelo usuário no painel seguro.
+## Funcionalidades revisadas
 
-## Implementação
+- Biblioteca com 73 Shorts confirmados e 45 exercícios anteriores, com busca, filtros e inclusão na ficha do aluno.
+- Exercícios e alimentos de mesmo nome mostram opções distintas; a ficha preserva o cadastro escolhido ao editar séries, repetições ou quantidades.
+- Formulários de catálogo e troca de vídeo bloqueiam os campos durante o envio e preservam o preenchimento após erro.
+- Checklist do aluno com nomes acessíveis estáveis, uso pelo teclado e bloqueio durante o registro da conclusão.
+- Planos alimentares em gramas, 591 alimentos TACO, histórico de treinos e comunidade.
+- Fluxos de clientes, financeiro, vendas e acesso individual mantidos.
 
-- Adaptador PostgreSQL com pool serverless, TLS verificado, batches atômicos e repetição de conflitos de serialização.
-- Schema privado marcos_squad com as 20 tabelas do aplicativo e sem grants para o navegador.
-- Função Node 24 para a API, configurada para São Paulo (`gru1`) no próximo deploy, fallback React em /aluno, arquivos estáticos e cron protegido.
-- Migração versionada e importador SQLite/D1 com snapshot consistente, rollback e proteção contra substituição de um destino ocupado.
-- Fluxos de professor, aluno, financeiro, treinos, alimentação e comunidade preservados.
-- Carregamento da prescrição iniciado pela seleção do professor, preservando a proteção contra respostas antigas ao alternar rapidamente entre alunos.
-- Preflight de configuração e arquivos, com modo opcional de banco somente de leitura e sem exibir credenciais.
-- Feed e painel ignoram respostas antigas; publicações e comentários preservam novos rascunhos digitados enquanto um envio anterior termina.
-- Tratamento de fotos estreitas e erros de leitura; atualização do catálogo junto à prescrição do aluno e reconciliação do treino em andamento.
-- Aviso visível quando uma prescrição foi salva, mas a atualização seguinte falhou, permitindo recarregar sem reenviar a criação.
-- Contraste do funil de vendas, indicadores e estados de carregamento alinhado ao tema escuro.
-- Saída e expiração do aluno invalidam cargas pendentes, impedindo que uma resposta antiga restaure a interface da sessão anterior.
-- Biblioteca com 73 Shorts confirmados do canal do Marcos, além dos 45 exercícios anteriores, em lista com busca e filtros. Seleção direta para montar o treino do aluno e importação de novos links em lotes revisados de até 50 exercícios, sem duplicar os já cadastrados.
-- O estado do acesso individual é atualizado após a gravação, mesmo quando a recarga seguinte falha; a interface permite recuperar a leitura sem repetir a liberação.
-- Linhas de exercícios, refeições e alimentos mantêm a identidade durante exclusões e alterações. Os controles do editor ficam bloqueados enquanto o salvamento está em andamento.
+## Verificações locais
 
-## Verificações
+130 testes automatizados passaram, sem falhas. ESLint e build React/TypeScript passaram.
 
-127 testes automatizados passaram, sem falhas. Incluem integrações PostgreSQL/PGlite real em memória, migração/importação, autenticação, regras financeiras, isolamento entre alunos, runtime Vercel, preflight, validação de URLs do YouTube e importação da biblioteca de Shorts. O lint e o build React/TypeScript passaram.
+Quatro verificações completas passaram com interface compilada, API Node, PostgreSQL/PGlite local e dados fictícios: escolha do vídeo entre nomes iguais, edição preservando a escolha, entrega das demonstrações ao aluno e conclusão persistida do checklist. Também passaram verificações de rascunhos, recuperação após falha e uso no celular.
 
-Na rodada anterior, 18 verificações no Chromium passaram em desktop 1440 px e celular 390×844. Foram testados login, painel, treino/vídeo/descanso/conclusão, dieta e comunidade. Não foram observados erros de JavaScript ou requisições falhas nas 38 respostas da API observadas. Um teste adicional confirmou que uma resposta atrasada na troca A → B → A não substitui a seleção atual. Todos os dados eram fictícios.
+As rodadas anteriores ficam separadas no [relatório de testes](TESTES_SUPABASE_VERCEL.md). As novas telas e correções estão na [revisão dos formulários](REVISAO_FORMULARIOS.md). O player do YouTube teve o vínculo conferido, mas a reprodução remota ainda precisa ser validada online.
 
-A revisão adicional passou por 8 fluxos de cadastro, financeiro e vendas, incluindo pagamento parcial, quitação e persistência após recarga. Regressões específicas de concorrência, catálogo, treino ativo, fotos e recuperação após erro foram reproduzidas antes e verificadas após as correções. Consulte [revisão dos fluxos e da interface](REVISAO_INTERFACE.md).
+## Próxima etapa de publicação
 
-Na rodada atual, seis verificações adicionais da biblioteca de Shorts passaram no Chromium, incluindo seleção para um aluno, gravação da ficha na API/PostgreSQL local, importação sem duplicatas e conclusão persistida pela área do aluno no celular. Não houve erros de JavaScript. O iframe remoto foi substituído no teste somente para conferir o endereço e o formato vertical; a reprodução real pelo YouTube ainda precisa ser validada no ambiente online. Consulte a [biblioteca e as telas](BIBLIOTECA_SHORTS.md).
+Quando a configuração for retomada, seguir o [guia genérico Supabase e Vercel](SUPABASE_VERCEL.md), preparar a conexão de servidor, preservar dados anteriores em ambiente privado e validar o endereço publicado. Os testes locais não comprovam conectividade ou funcionamento da hospedagem real.
 
-Seis verificações separadas de acesso passaram, incluindo liberação e revogação com falha na leitura seguinte, confirmação da rotação e cópia manual quando o clipboard não está disponível. A revisão dos editores confirmou a preservação dos rascunhos ao mover ou excluir linhas e a recuperação após falha de salvamento.
-
-O fluxo completo de criação de treino e dieta até o celular do aluno foi concluído em cinco verificações adicionais, com 33 respostas da API bem-sucedidas e nenhum erro JavaScript. Dias, ordem, séries e descanso foram preservados; porções e macros coincidiram com cálculo independente e permaneceram após recarga. As evidências usam dados fictícios. A prévia do treino em andamento agora mostra apenas **Treino B**.
-
-A API também foi importada em uma pasta isolada, com somente seu grafo de arquivos e as dependências de produção. Os catálogos completos e o driver PostgreSQL carregaram em Node 24; sem configuração, as rotas permaneceram bloqueadas. Essa verificação local não executou o builder da Vercel nem contatou o Supabase remoto.
-
-A migração foi aplicada ao projeto Supabase avxdirsnlikufygnphoq. Na retomada, foi reconciliado o registro da migração com o arquivo original e seu checksum exato. A estrutura versionada contém as 20 tabelas do aplicativo e o registro `schema_migrations`, com RLS e sem acesso de schema para `anon` ou `authenticated`. A importação operacional continua pendente.
-
-Na rodada inicial, o teste de gravações e rollback no Supabase remoto foi recusado pela ferramenta e não foi executado. A retomada aplicou e verificou somente a reconciliação do histórico; a migração de clientes permanece pendente. Os ensaios locais passaram, mas não validam rede/TLS/pooler remoto.
-
-O aviso informativo rls_enabled_no_policy é esperado nesta arquitetura de schema privado e API no servidor. Nenhum acesso público foi concedido para suprimir esse aviso.
-
-O acesso ao projeto Vercel foi confirmado pelo ID no escopo padrão da conexão, o mesmo usado na criação. A consulta com seleção explícita do workspace retornou 403, mas as operações no projeto funcionam no escopo padrão. A configuração remota foi atualizada para Vite, Node 24, `npm ci`, build `npm run build`, saída `dist` e API em São Paulo. `CRON_SECRET` foi gerado e salvo como variável sensível somente em Production. O usuário definiu `DASHBOARD_PASSWORD`, também sensível em Production. A presença de ambas foi conferida sem ler seus valores. Falta `SUPABASE_DB_URL`, a preencher diretamente no painel seguro da Vercel.
-
-A integração não oferece a senha de bancos existentes nem o endereço do pooler; não foram usados hosts inferidos ou chaves públicas como substitutos da conexão PostgreSQL.
-
-O corte de plataforma exige preservar a origem Cloudflare/D1 com backup consistente e conferência privada de integridade. O arquivo de backup fica em armazenamento privado com permissões restritas e não integra o GitHub ou o ZIP. O procedimento não substitui um snapshot atualizado e a interrupção das gravações durante o corte final.
-
-O importador existente também foi exercitado com esse backup em PostgreSQL/PGlite local. Quantidades, campos, identificadores, ordem das atividades e totais financeiros coincidiram com a origem; sessões e tentativas de login foram excluídas. As verificações de destino ocupado e falha de contagem preservaram o destino e reverteram as gravações, respectivamente. Esse ensaio não transferiu dados para o Supabase remoto.
-
-## Pendências de publicação
-
-1. Salvar a URI completa do Transaction pooler como `SUPABASE_DB_URL`, Secret/Sensitive em Production na Vercel. A senha não passa pelo chat, GitHub ou ZIP. `DASHBOARD_PASSWORD` e `CRON_SECRET` já estão configurados. O conector não expõe a configuração do pooler; não inferir o host pela região nem reutilizar placeholders do ambiente Cloudflare.
-2. Transferir os dados anteriores com backup consistente, origem congelada durante o corte e destino vazio. A importação operacional continua pendente.
-3. Validar a escrita no Supabase e realizar o deploy Vercel após a apresentação dos testes solicitada pelo usuário.
-4. Conferir a proteção adicional da Vercel para permitir acesso dos alunos e executar npm run verify:deployment com a URL confirmada.
-
-Projeto Vercel criado: marcos-squad, ID prj_yQHuYU7pQrW0cb4KZlO4UC6JnORY. A criação não equivale a publicação. Consulte [Supabase e Vercel](SUPABASE_VERCEL.md).
-
-## Histórico
-
-O caminho Cloudflare/D1 falhou no upload com HTTP 401 da integração do ambiente, mesmo após autorização. O Worker e o D1 anteriores não foram apagados nem substituídos na adaptação.
+O código compartilhado inclui apenas fontes, arquivos públicos do app, testes e telas fictícias. Credenciais, identificadores da conta, backups, registros e relatórios de bancos privados ficam fora do material público.

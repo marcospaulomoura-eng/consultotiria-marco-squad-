@@ -1,21 +1,25 @@
-import { useId, useState } from 'react';
+import { useId, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { ArrowDown, ArrowUp, Check, Plus, Trash2, X } from 'lucide-react';
 import { format, normalized, totals, week } from './fitness-types';
 import type { Diet, Exercise, Food, Meal, Workout } from './fitness-types';
 import { MacroBar, Modal } from './FitnessShared';
+import { catalogChoices, resolveCatalogChoice } from './catalog-choices';
+import type { CatalogPickerItem } from './catalog-choices';
 
 const newRowKey = () => crypto.randomUUID();
 const newMeal = (): Meal => ({ name: '', time: '', items: [] });
 
-function Picker({ items, selected, onSelect, label, disabled = false }: { items: { id: string; name: string }[]; selected: string; onSelect: (id: string) => void; label: string; disabled?: boolean }) {
-  const id = useId(); const [term, setTerm] = useState(items.find(x => x.id === selected)?.name || '');
-  const [previous, setPrevious] = useState(selected);
-  if (previous !== selected) {
-    setPrevious(selected);
-    if (selected || term === items.find(x => x.id === previous)?.name) setTerm(items.find(x => x.id === selected)?.name || '');
+function Picker({ items, selected, onSelect, label, disabled = false }: { items: CatalogPickerItem[]; selected: string; onSelect: (id: string) => void; label: string; disabled?: boolean }) {
+  const id = useId(); const choices = useMemo(() => catalogChoices(items), [items]);
+  const selectedValue = choices.find(choice => choice.id === selected)?.value || '';
+  const [draft, setDraft] = useState({ selected, selectedValue, term: selectedValue });
+  if (draft.selected !== selected || draft.selectedValue !== selectedValue) {
+    const sync = (!!selected && draft.selected !== selected) || draft.term === draft.selectedValue;
+    setDraft({ selected, selectedValue, term: sync ? selectedValue : draft.term });
   }
-  return <label className="fit-picker">{label}<input list={id} disabled={disabled} value={term} placeholder="Digite para buscar…" onChange={e => { setTerm(e.target.value); const item = items.find(x => x.name === e.target.value); onSelect(item?.id || ''); }} required aria-invalid={!selected && !!term} /><datalist id={id}>{items.filter(x => normalized(x.name).includes(normalized(term))).slice(0, 100).map(x => <option key={x.id} value={x.name} />)}</datalist>{!selected && !!term && <small>Selecione um item da lista.</small>}</label>;
+  const term = draft.term; const hintId = `${id}-hint`;
+  return <label className="fit-picker">{label}<input list={id} disabled={disabled} value={term} placeholder="Digite para buscar…" onChange={e => { const value = e.target.value; setDraft(current => ({ ...current, term: value })); onSelect(resolveCatalogChoice(choices, value)); }} required aria-label={label} aria-invalid={!selected && !!term} aria-describedby={!selected && !!term ? hintId : undefined} /><datalist id={id}>{choices.filter(choice => normalized(choice.value).includes(normalized(term))).slice(0, 100).map(choice => <option key={choice.id} value={choice.value} />)}</datalist>{!selected && !!term && <small id={hintId}>Selecione um item da lista.{choices.some(choice => normalized(choice.name) === normalized(term)) ? ' Confira a origem nas opções.' : ''}</small>}</label>;
 }
 export function WorkoutEditor({ value, setValue, exercises, close, save }: { value: Workout; setValue: (w: Workout) => void; exercises: Exercise[]; close: () => void; save: () => Promise<void> }) {
   const [busy, setBusy] = useState(false); const [error, setError] = useState('');
